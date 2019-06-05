@@ -11,6 +11,7 @@ Opt("TrayOnEventMode", 1)
 
 $tExit = TrayCreateItem("Exit")
 TrayItemSetOnEvent(-1, "_Exit")
+OnAutoItExitRegister ("_Exit")
 
 Local $MoveSize[2] = [-2,2]
 
@@ -29,5 +30,5 @@ While 1
 Wend
 
 Func _Exit()
-	Exit
+
 Endfunc
