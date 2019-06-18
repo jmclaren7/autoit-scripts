@@ -1,6 +1,5 @@
 ;===============================================================================
-;DONT FORGET TO UPDATE VERSION NUMBERS AND DATES
-;REVISED 2019-05-30
+;GITHub version
 ;===============================================================================
 #include-once
 ;#Include <Array.au3>
@@ -54,7 +53,7 @@ EndFunc
 ; User Calltip:     GetUnixTimeStamp() (required: <_AzUnixTime.au3>)
 ;
 ;===============================================================================
-Func GetUnixTimeStamp($year = 0, $mon = 0, $days = 0, $hour = 0, $min = 0, $sec = 0)
+Func _GetUnixTimeStamp($year = 0, $mon = 0, $days = 0, $hour = 0, $min = 0, $sec = 0)
     If $year = 0 Then $year = Number(@YEAR)
     If $mon = 0 Then $mon = Number(@MON)
     If $days = 0 Then $days = Number(@MDAY)
@@ -64,7 +63,7 @@ Func GetUnixTimeStamp($year = 0, $mon = 0, $days = 0, $hour = 0, $min = 0, $sec 
     Local $NormalYears = 0
     Local $LeepYears = 0
     For $i = 1970 To $year - 1 Step +1
-        If BoolLeapYear($i) = True Then
+        If _BoolLeapYear($i) = True Then
             $LeepYears = $LeepYears + 1
         Else
             $NormalYears = $NormalYears + 1
@@ -73,7 +72,7 @@ Func GetUnixTimeStamp($year = 0, $mon = 0, $days = 0, $hour = 0, $min = 0, $sec 
     Local $yearNum = (366 * $LeepYears * 24 * 3600) + (365 * $NormalYears * 24 * 3600)
     Local $MonNum = 0
     For $i = 1 To $mon - 1 Step +1
-        $MonNum = $MonNum + MaxDayInMonth($year, $i)
+        $MonNum = $MonNum + _LastDayInMonth($year, $i)
     Next
     Return $yearNum + ($MonNum * 24 * 3600) + (($days -  1 ) * 24 * 3600) + $hour * 3600 + $min * 60 + $sec
 EndFunc   ;==>GetUnixTimeStamp
@@ -95,7 +94,7 @@ EndFunc   ;==>GetUnixTimeStamp
 ; User Calltip:     UnixTimeStampToTime() (required: <_AzUnixTime.au3>)
 ;
 ;===============================================================================
-Func UnixTimeStampToTime($UnixTimeStamp)
+Func _UnixTimeStampToTime($UnixTimeStamp)
 	Dim $pTime[6]
 	$pTime[0] = Floor($UnixTimeStamp/31436000) + 1970 ; pTYear
 
@@ -107,11 +106,11 @@ Func UnixTimeStampToTime($UnixTimeStamp)
 	$pTime[1] = 1 ;$pTMon
 	$pTime[2] = $pDaysSnEp ;$pTDays
 
-	If $pTime[2] > 59 And BoolLeapYear($pTime[0]) = True Then $pTime[2] += 1
+	If $pTime[2] > 59 And _BoolLeapYear($pTime[0]) = True Then $pTime[2] += 1
 
 	While 1
 		If($pTime[2] > 31) Then
-		$pTime[2] = $pTime[2] - MaxDayInMonth($pTime[1])
+		$pTime[2] = $pTime[2] - _LastDayInMonth($pTime[1])
 		$pTime[1]  = $pTime[1] + 1
 		Else
 			ExitLoop
@@ -137,7 +136,7 @@ EndFunc ;==> UnixTimeStampToTime
 ; User Calltip:     BoolLeapYear() (required: <_AzUnixTime.au3>)
 ; Credits :         Wikipedia Leap Year
 ;===============================================================================
-Func BoolLeapYear($year)
+Func _BoolLeapYear($year)
     If Mod($year, 400) = 0 Then
         Return True ;is_leap_year
     ElseIf Mod($year, 100) = 0 Then
@@ -151,7 +150,7 @@ EndFunc   ;==>BoolLeapYear
 
 ;===============================================================================
 ;
-; Description:      MaxDayInMonth - Converts UnixTime to Date
+; Description:      _LastDayInMonth
 ;                   if the function is called with no parameters it returns maximum days for current system set month
 ;                   else it returns maximum days for the specified month in specified year
 ; Parameter(s):     Requierd : None
@@ -160,11 +159,11 @@ EndFunc   ;==>BoolLeapYear
 ;                               - $mon : month : 1 to 12
 ; Return Value(s):
 ; Author(s):        azrael-sub7
-; User Calltip:     MaxDayInMonth() (required: <_AzUnixTime.au3>)
+; User Calltip:
 ;===============================================================================
-Func MaxDayInMonth($year = @YEAR, $mon = @MON)
+Func _LastDayInMonth($year = @YEAR, $mon = @MON)
     If Number($mon) = 2 Then
-        If BoolLeapYear($year) = True Then
+        If _BoolLeapYear($year) = True Then
             Return 29 ;is_leap_year
         Else
             Return 28 ;is_not_leap_y
@@ -184,7 +183,7 @@ Else
     EndIf
 EndIf
     EndIf
-EndFunc   ;==>MaxDayInMonth
+EndFunc   ;==>_LastDayInMonth
 ;===============================================================================
 ; Function Name:    __StringProper
 ; Description:		Improved version of _StringProper, wont capitalize after apostrophes
@@ -291,6 +290,7 @@ endfunc
 ;===============================================================================
 ; Function Name:    _ProcessWaitClose
 ; Description:		ProcessWaitClose that handles stdout from the running process
+;					Proccess must have been started with $STDERR_CHILD + $STDOUT_CHILD
 ; Call With:		_ProcessWaitClose($iPid)
 ; Parameter(s):
 ; Return Value(s):  On Success -
@@ -300,14 +300,14 @@ endfunc
 ;===============================================================================
 Func _ProcessWaitClose($iPid)
 	Local $sData, $sStdOut
-	ProcessWait ($iPid,1)
+	ProcessWait ($iPid, 2)
 	While ProcessExists($iPid)
 		Sleep(10)
 		$sStdOut = StdoutRead($iPid)
-		If $sStdOut = "" Then ContinueLoop
+		If @error Then ContinueLoop
 		;$sStdOut=StringReplace($sStdOut,@CR&@LF,""); I don't know why this exists, we shouldn't remove anything
 		$sStdOut=StringReplace($sStdOut,@CR&@LF&@CR&@LF,@CR&@LF) ; special purpose replacment for above, seems like this should be handled in the output function
-		_ConsoleWrite($sStdOut)
+		;_ConsoleWrite($sStdOut)
 		$sData &= $sStdOut
 	WEnd
 	return $sData
@@ -476,10 +476,11 @@ EndFunc ;==>_sini
 ;					$SameLine - (Optional) Will continue to print on the same line if set to 1
 ;
 ; Return Value(s):  The Text Originaly Sent
-; Notes:			Will see if global var $DEBUGLOG=1 or $CmdLineRaw contains "-debuglog" to see if log file should be writen
+; Notes:			Checks if global $LogToFile=1 or $CmdLineRaw contains "-debuglog" to see if log file should be writen
 ;					If Text = "OPENLOG" then log file is displayed (casesense)
 ; Author(s):        JohnMC - JohnsCS.com
-; Date/Version:		06/1/2012  --  v1.1
+; Date/Version:		06/12/2019 --  v1.2 Added back -debuglog switch and updated notes
+;					06/1/2012  --  v1.1
 ;===============================================================================
 Func _ConsoleWrite($sMessage, $iLevel=1, $iSameLine=0)
 	Local $hHandle, $sData
@@ -487,6 +488,7 @@ Func _ConsoleWrite($sMessage, $iLevel=1, $iSameLine=0)
 	if Eval("LogFilePath")="" Then Global $LogFilePath = StringTrimRight(@ScriptFullPath,4)&"_Log.txt"
 	if Eval("LogFileMaxSize")="" Then Global $LogFileMaxSize = 0
 	if Eval("LogToFile")="" Then Global $LogToFile = False
+	if StringInStr($CmdLineRaw, "-debuglog") Then Global $LogToFile = True
 	if Eval("LogLevel")="" Then Global $LogLevel = 3 ; The level of message to log - If no level set to 3
 	If $sMessage=="OPENLOG" Then Return ShellExecute($LogFilePath)
 
