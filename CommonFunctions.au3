@@ -6,7 +6,20 @@
 #include <Security.au3>
 #Include <String.au3>
 #include <File.au3>
-
+;===============================================================================
+;
+; Description:
+;
+; Parameter(s):     Required :
+;                   Optional :
+; Return Value(s):  On Success -
+;                   On Failure -
+; Author(s):
+;
+;===============================================================================
+Func _IsChecked($idControlID)
+    Return BitAND(GUICtrlRead($idControlID), $GUI_CHECKED) = $GUI_CHECKED
+EndFunc
 ;===============================================================================
 ;
 ; Description:
