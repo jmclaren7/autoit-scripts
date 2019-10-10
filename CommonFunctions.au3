@@ -6,6 +6,7 @@
 #include <Security.au3>
 #Include <String.au3>
 #include <File.au3>
+#include <GUIConstantsEx.au3>
 ;===============================================================================
 ;
 ; Description:
