@@ -2,7 +2,7 @@
 #AutoIt3Wrapper_Icon=..\..\..\Google Drive\Autoit\_Icon.ico
 #AutoIt3Wrapper_UseUpx=n
 #AutoIt3Wrapper_Res_Description=MeasureRemoteLatency
-#AutoIt3Wrapper_Res_Fileversion=1.0.0.20
+#AutoIt3Wrapper_Res_Fileversion=1.0.0.30
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
 #AutoIt3Wrapper_Res_Language=1033
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
@@ -38,21 +38,29 @@ While 1
 		Case $TestButton
 			GUICtrlSetData ( $TestButton, "Move Mouse To Remote (4s)")
 			Sleep(4*1000)
+
+			$aLatency = 0
+
+
 			$Mouse = MouseGetPos()
 			$Color = Hex(PixelGetColor ($Mouse[0]-5, $Mouse[1]-5), 6)
 			_UpdateLog($Color)
 
-			If $Color = "0000FF" OR $Color = "00FF00" Then
+			$ColorR = Dec(StringMid($Color, 1, 2))
+			$ColorG = Dec(StringMid($Color, 3, 2))
+			$ColorB = Dec(StringMid($Color, 5, 2))
+
+			If $ColorR < 5 AND ($ColorG > 240 OR $ColorB > 240) Then
 				$LastColor = $Color
 				GUICtrlSetData ( $TestButton, "Wait (1s)")
 				Sleep(1*1000)
 				GUICtrlSetData ( $TestButton, "Testing (6s)")
 
-				$Average = 0
+				Local $aLatency[0]
 				$Timer = TimerInit ( )
 				While 1
 					MouseDown("right")
-					Sleep(60)
+					Sleep(80)
 					MouseUp("right")
 					$ClickTimer = TimerInit ( )
 
@@ -60,36 +68,42 @@ While 1
 						$Mouse = MouseGetPos()
 						$Color = Hex(PixelGetColor ($Mouse[0]-5, $Mouse[1]-5), 6)
 						If $Color <> $LastColor Then
-							$Latency = TimerDiff($ClickTimer)
-							$Latency = Round($Latency)
-							_UpdateLog($Latency)
+							$ThisLatency = TimerDiff($ClickTimer)
+							$ThisLatency = Round($ThisLatency)
+							_UpdateLog($ThisLatency)
 
 							$LastColor = $Color
-							If $Average = 0 Then
-								$Average = $Latency
-							Else
-								$Average = Round(($Average + $Latency) / 2)
-							EndIf
+							_ArrayAdd($aLatency, $ThisLatency)
 
 							sleep(200)
 							ExitLoop
 
-						Elseif TimerDiff($ClickTimer) > 400 Then
+						Elseif TimerDiff($ClickTimer) > 1500 Then
 							_UpdateLog("Timeout")
 							ExitLoop
+
 						Endif
 
 					WEnd
 
 					If TimerDiff($Timer) > 6000 Then
-						_UpdateLog("Average=" & $Average)
+						_UpdateLog("Done")
 						ExitLoop
 					EndIf
 
 				Wend
 			Else
 				_UpdateLog("Test area not found")
+				_UpdateLog($ColorR&", "&$ColorB&", "&$ColorG)
 			EndIf
+
+			$LatencyTotal = 0
+			For $i=0 to UBound($aLatency)-1
+				$LatencyTotal = $LatencyTotal + $aLatency[$i]
+			Next
+			$LatencyAverage = Round($LatencyTotal / UBound($aLatency))
+
+			_UpdateLog("Average: " & $LatencyAverage)
 
 			GUICtrlSetData ( $TestButton, "Test")
 
