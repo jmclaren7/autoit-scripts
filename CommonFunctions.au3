@@ -344,7 +344,7 @@ Func _RunWait($sProgram, $Working="", $Show = @SW_HIDE, $Opt = BitOR($STDIN_CHIL
 		return $iPid
 	endif
 
-	_ProcessWaitClose($iPid)
+	_ConsoleWrite(@CRLF&_ProcessWaitClose($iPid))
 
 	return $iPid
 endfunc

@@ -11,6 +11,8 @@
 #include <WindowsConstants.au3>
 #include "CommonFunctions.au3"
 #include <Array.au3>
+#Include <IE.au3>
+
 
 $Version = FileGetVersion(@ScriptFullPath)
 Global $Title = "Remote Latency Test v"&$Version

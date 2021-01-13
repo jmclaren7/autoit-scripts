@@ -1,7 +1,7 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=..\..\..\Google Drive\Autoit\_Icon.ico
 #AutoIt3Wrapper_Res_Description=OpenFolderOnChange
-#AutoIt3Wrapper_Res_Fileversion=1.0.0.0
+#AutoIt3Wrapper_Res_Fileversion=1.0.0.7
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
 #AutoIt3Wrapper_Res_Language=1033
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
@@ -18,18 +18,35 @@ _ConsoleWrite("Start")
 Opt("TrayMenuMode", 1+2)
 Opt("TrayOnEventMode", 1)
 
-$tExit = TrayCreateItem("Exit")
-TrayItemSetOnEvent(-1, "_Exit")
-$tSetFolder = TrayCreateItem("Set Folder To Monitor")
-TrayItemSetOnEvent(-1, "_PromptSetup")
+Global $SettingsFile = @AppDataDir & "\OpenFolderOnChange.ini"
 
-$Title = "Open Folder On Change"
-$SettingsFile = @AppDataDir & "\OpenFolderOnChange.ini"
+Global $Title = IniRead($SettingsFile,"settings", "title", "default")
+_ConsoleWrite("INI Value: "&$Title)
+If $Title = "default" Then
+	$Title = "Open Folder On Change"
+	IniWrite($SettingsFile,"settings", "title", $Title)
+Endif
 
-Global $MonitorFolder = IniRead($SettingsFile,"settings", "monitorfolder", "Q:\Scans")
+Global $MonitorFolder = IniRead($SettingsFile,"settings", "monitorfolder", "default")
 _ConsoleWrite("INI Value: "&$MonitorFolder)
 If $MonitorFolder = "default" Then _PromptSetup()
 
+TrayCreateItem("  "&$Title)
+TrayItemSetState (-1, 128)
+TrayCreateItem("")
+$iSettings = TrayCreateMenu("Settings")
+$tSetFolder = TrayCreateItem("Select Folder",$iSettings)
+TrayItemSetOnEvent(-1, "_PromptSetup")
+$tSetFolder = TrayCreateItem("Open Settings INI",$iSettings)
+TrayItemSetOnEvent(-1, "_OpenINI")
+TrayCreateItem("")
+$tOpenFolder = TrayCreateItem("Open Folder")
+TrayItemSetOnEvent(-1, "_OpenFolder")
+TrayCreateItem("")
+$tExit = TrayCreateItem("Exit")
+TrayItemSetOnEvent(-1, "_Exit")
+
+TraySetToolTip ($Title&@CRLF&$MonitorFolder)
 
 $LastCount = -1
 Local $aLastFiles[0]
@@ -54,13 +71,8 @@ While 1
 		If $Count > $LastCount AND $LastCount <> -1 Then
 			_ConsoleWrite("Count Increased")
 			$aDiff = _ArraySubtract($aFiles, $aLastFiles)
-			_WinAPI_ShellOpenFolderAndSelectItems ($MonitorFolder, $aDiff)
 
-			$FolderName = StringTrimLeft($MonitorFolder,StringInStr($MonitorFolder,"\",0,-1))
-			If WinActive($FolderName) Then
-				Send("{F5}")
-				_ConsoleWrite("Sent F5")
-			EndIf
+			_OpenFolder($MonitorFolder, $aDiff)
 
 		EndIf
 
@@ -87,7 +99,24 @@ Func _ArraySubtract($aArray1, $aArray2)
 
 	Return $aArray1
 Endfunc
+Func _OpenINI()
+	ShellExecute($SettingsFile)
+EndFunc
 
+
+Func _OpenFolder($sOpenPath = $MonitorFolder, $aNames = 0)
+	;Use eval to deal with using this function as a tray event
+	If Eval("sOpenPath") = "" Then $sOpenPath = $MonitorFolder
+	If Eval("aNames") = "" Then $aNames = 0
+
+	_WinAPI_ShellOpenFolderAndSelectItems ($sOpenPath, $aNames)
+
+	$FolderName = StringTrimLeft($sOpenPath,StringInStr($sOpenPath,"\",0,-1))
+	If WinActive($FolderName) Then
+		Send("{F5}")
+		_ConsoleWrite("Sent F5")
+	EndIf
+EndFunc
 
 Func _PromptSetup()
 	$NewFolder = FileSelectFolder ( "dialog text", "")
@@ -95,6 +124,7 @@ Func _PromptSetup()
 		_ConsoleWrite("New Value: "&$NewFolder)
 		IniWrite($SettingsFile,"settings", "monitorfolder", $NewFolder)
 		$MonitorFolder = $NewFolder
+		TraySetToolTip ($MonitorFolder)
 		Return $NewFolder
 	Else
 		Return SetError(1,0,False)
