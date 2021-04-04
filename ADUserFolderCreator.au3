@@ -1,7 +1,6 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
-#AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Change2CUI=y
-#AutoIt3Wrapper_Res_Fileversion=1.0.0.33
+#AutoIt3Wrapper_Res_Fileversion=1.0.0.45
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
 #AutoIt3Wrapper_Res_Language=1033
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
@@ -22,16 +21,31 @@ Else
 	$Parameter1 = ""
 EndIf
 
-;INI parameters
+;INI
 $SettingsFile = StringTrimRight(@ScriptName, 4) & ".ini"
 $SettingsFileFullPath = @ScriptDir & "\" & $SettingsFile
-$ExcludeUsers = IniRead($SettingsFileFullPath, "Settings", "ExcludeUsers", "")
-$UserFoldersPath = IniRead($SettingsFileFullPath, "Settings", "UsersFolderPath", "notset")
-If StringRight($UserFoldersPath, 1) = "\" Then $UserFoldersPath = StringTrimRight($UserFoldersPath, 1)
-If $UserFoldersPath = "notset" OR NOT FileExists($UserFoldersPath) Then
-	MsgBox(0, $Title, "Users folder path not set or invalid in " & $SettingsFile, 10)
-	Exit
-EndIf
+
+While 1
+	$UserFoldersPath = IniRead($SettingsFileFullPath, "Settings", "UsersFolderPath", "notset")
+	If $UserFoldersPath <> "notset" AND FileExists($UserFoldersPath) Then
+		If StringRight($UserFoldersPath, 1) = "\" AND StringRight($UserFoldersPath, 2) <> ":\" Then
+			$UserFoldersPath = StringTrimRight($UserFoldersPath, 1)
+		EndIf
+		ExitLoop
+	Else
+		$Msg = MsgBox(1, $Title, "Users folder path not set or invalid (" & $UserFoldersPath & "), click ok to select a folder to use", 10)
+		If $Msg <> 1 Then Exit
+		$NewFolderPath = FileSelectFolder("Select a folder for users", "", 0, "")
+		If @error Then Exit
+		If FileExists($NewFolderPath) Then
+			IniWrite($SettingsFileFullPath, "Settings", "UsersFolderPath", $NewFolderPath)
+			MsgBox(0, $Title, "Folder path saved")
+		Endif
+	EndIf
+Wend
+
+$ExcludeUsers = IniRead($SettingsFileFullPath, "Settings", "ExcludeUsers", "notset")
+If $ExcludeUsers = "notset" Then IniWrite($SettingsFileFullPath, "Settings", "ExcludeUsers", "")
 
 ;Execute the AD query to get user list and disabled status
 $Command = 'dsquery group -samid "Domain Users"  | dsget group -members | dsget user -samid -disabled'
