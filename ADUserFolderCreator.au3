@@ -1,12 +1,16 @@
+#NoTrayIcon
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
+#AutoIt3Wrapper_Icon=_Icon.ico
 #AutoIt3Wrapper_Change2CUI=y
-#AutoIt3Wrapper_Res_Fileversion=1.0.0.45
+#AutoIt3Wrapper_Res_Fileversion=1.0.0.64
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
 #AutoIt3Wrapper_Res_Language=1033
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
+#RequireAdmin
+#NoTrayIcon
+
 #include <Constants.au3>
 #Include <String.au3>
-#NoTrayIcon
 
 Global $Title = @ScriptName
 Global $LogToFile = True
@@ -19,6 +23,13 @@ If $CmdLine[0] >= 1 Then
 	$Parameter1 = $CmdLine[1]
 Else
 	$Parameter1 = ""
+EndIf
+
+If $Parameter1 = "update" Then
+	$Update = True
+Else
+	_ConsoleWrite("Dry Run")
+	$Update = False
 EndIf
 
 ;INI
@@ -48,8 +59,13 @@ $ExcludeUsers = IniRead($SettingsFileFullPath, "Settings", "ExcludeUsers", "nots
 If $ExcludeUsers = "notset" Then IniWrite($SettingsFileFullPath, "Settings", "ExcludeUsers", "")
 
 ;Execute the AD query to get user list and disabled status
-$Command = 'dsquery group -samid "Domain Users"  | dsget group -members | dsget user -samid -disabled'
-$iPid = Run(@ComSpec & " /c " & $Command, "", @SW_MINIMIZE, $STDERR_MERGED)
+;$Command = 'dsquery group -samid "Domain Users"  | dsget group -members | dsget user -samid -disabled'
+;$iPid = Run(@ComSpec & " /c " & $Command, "", @SW_MINIMIZE, $STDERR_MERGED)
+
+$PSCommand = 'Get-ADGroupMember \"Domain users\" -recursive | Get-ADUser | Where { $_.Enabled -eq $True} | Select SamAccountName | Format-Table -HideTableHeaders'
+$PSCommand = 'powershell.exe -nologo -executionpolicy bypass -WindowStyle hidden -noprofile -command "&{' & $PSCommand & '}"'
+_ConsoleWrite($PSCommand)
+$iPid = Run(@ComSpec & ' /c ' & $PSCommand, "", @SW_MINIMIZE, $STDERR_MERGED)
 
 Local $sData
 While 1
@@ -71,17 +87,17 @@ For $i=2 to $aData[0]-1
 	$User = StringStripWS($User, $STR_STRIPLEADING+$STR_STRIPTRAILING)
 
 	;Skip disabled users and trim disabled status
-	If StringRight($User, 3) = " no" Then
-		$User = StringStripWS(StringTrimRight($User, 3), $STR_STRIPLEADING+$STR_STRIPTRAILING)
+	;If StringRight($User, 3) = " no" Then
+	;	$User = StringStripWS(StringTrimRight($User, 3), $STR_STRIPLEADING+$STR_STRIPTRAILING)
 
-	Elseif StringRight($User, 3) = "yes" Then
-		$User = StringStripWS(StringTrimRight($User, 3), $STR_STRIPLEADING+$STR_STRIPTRAILING)
-		_ConsoleWrite($User & " - skipped because deactivated")
-		ContinueLoop
-	Else
-		_ConsoleWrite("Invalid line, $User=""" & $User & """")
-		ContinueLoop
-	EndIf
+	;Elseif StringRight($User, 3) = "yes" Then
+	;	$User = StringStripWS(StringTrimRight($User, 3), $STR_STRIPLEADING+$STR_STRIPTRAILING)
+	;	_ConsoleWrite($User & " - skipped because deactivated")
+	;	ContinueLoop
+	;Else
+	;	_ConsoleWrite("Invalid line, $User=""" & $User & """")
+	;	ContinueLoop
+	;EndIf
 
 	;Skip empty usernames
 	If $User = "" Then ContinueLoop
@@ -95,23 +111,65 @@ For $i=2 to $aData[0]-1
 	;Full path of the users folder to check
 	$UserFolder = $UserFoldersPath & "\" & $User
 
-	;If users folder already exists do nothing
-	If FileExists ($UserFolder) Then
-		_ConsoleWrite($User & " - folder exists")
-
-	;Otherwise, create the users folder and set permisions
-	Else
-		;Check parameters so that we only actualy make any changes if the right parameter exists
-		If $Parameter1 = "update" Then
+	; If user folder doesnt exit, create it and set permisions
+	If NOT FileExists ($UserFolder) Then
+		_ConsoleWrite($User & " - user folder doesn't exist, creating folder")
+		If $Update Then
 			DirCreate($UserFolder)
 			;Set permisions to write (not full)
-			RunWait(@ComSpec & ' /c CACLS "'&$UserFolder&'" /E /T /C /G "'&$User&'":C','',@sw_hide)
+			$Command = 'iCACLS "'&$UserFolder&'" /E /T /C /Grant "'&$User&'":M'
+			_ConsoleWrite($User & " - raw command: "&$Command)
+			RunWait(@ComSpec & ' /c ' & $Command,'',@SW_HIDE)
 			_ConsoleWrite($User & " - folder created, return: "&@error)
+
+		EndIf
+
+	Else
+		_ConsoleWrite($User & " - folder exists")
+
+	Endif
+
+	; If NestedFolder1 is set and does not exist, create folder
+	$NestedFolder1 = IniRead($SettingsFileFullPath, "Settings", "NestedFolder1", "")
+	$NestedFolder1FullPath = $UserFolder & "\" & $NestedFolder1
+	If $NestedFolder1 Then
+		_ConsoleWrite($User & " - $NestedFolder1="&$NestedFolder1)
+		If Not FileExists ($NestedFolder1FullPath) Then
+			_ConsoleWrite($User & " - nested folder doesn't exist, creating folder")
+			If $Update Then DirCreate($NestedFolder1FullPath)
+			_ConsoleWrite($User & " - folder created, return: "&@error)
+
 		Else
-			_ConsoleWrite($User & " - folder created (dry run)")
-		Endif
+			_ConsoleWrite($User & " - nested folder exists")
+
+		EndIf
+
+	Else
+		_ConsoleWrite($User & " - nested folder not set")
 
 	EndIf
+
+
+	; If NestedFolderUser1 is set and folder exists, update acl
+	$NestedFolderUser1 = IniRead($SettingsFileFullPath, "Settings", "NestedFolderUser1", "")
+	If $NestedFolderUser1 Then
+		_ConsoleWrite($User & " - $NestedFolderUser1="&$NestedFolderUser1)
+
+		If FileExists ($NestedFolder1FullPath) Then
+			_ConsoleWrite($User & " - nested folder exists, setting acl")
+				$Command = ' iCACLS "'&$NestedFolder1FullPath&'" /Grant "'&$NestedFolderUser1&'":W /T /C'
+				_ConsoleWrite($User & " - raw command: "&$Command)
+				If $Update Then RunWait(@ComSpec & ' /c ' & $Command,'',@SW_HIDE)
+		Else
+			_ConsoleWrite($User & " - nested folder does not exists")
+
+		EndIf
+
+	Else
+		_ConsoleWrite($User & " - NestedFolderUser1 not set")
+
+	EndIf
+
 
 Next
 
