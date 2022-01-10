@@ -1,5 +1,5 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
-#AutoIt3Wrapper_Res_Fileversion=2.1.0.5
+#AutoIt3Wrapper_Res_Fileversion=3.0.0.7
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
 #AutoIt3Wrapper_Res_Language=1033
 #AutoIt3Wrapper_Res_requestedExecutionLevel=asInvoker
@@ -8,96 +8,113 @@
 #include <ButtonConstants.au3>
 #include <EditConstants.au3>
 #include <GUIConstantsEx.au3>
+#include <GUIListBox.au3>
 #include <StaticConstants.au3>
+#include <TabConstants.au3>
 #include <WindowsConstants.au3>
 
 Opt("TrayIconHide", 1)
 Opt("GUIOnEventMode", 1)
 
+Global $TITLE="ReType"
 Global $VERSION=FileGetVersion(@AutoItExe)
+Global $GUITITLE=$TITLE&" v"&$VERSION
 
 #Region ### START Koda GUI section ###
-$Form1 = GUICreate("ReType: "&$VERSION, 274, 141)
-$Group1 = GUICtrlCreateGroup("Enter Text", 4, 0, 265, 45)
-GUICtrlSetFont(-1, 8, 400, 0, "Arial")
-$Input1 = GUICtrlCreateInput("", 8, 16, 257, 22)
-GUICtrlCreateGroup("", -99, -99, 1, 1)
-$Group2 = GUICtrlCreateGroup("Options", 4, 44, 265, 73)
-GUICtrlSetFont(-1, 8, 400, 0, "Arial")
-$Input2 = GUICtrlCreateInput("5", 60, 52, 21, 19)
-$Label1 = GUICtrlCreateLabel("Speed (ms)", 8, 56, 52, 18)
+$Form1 = GUICreate($GUITITLE, 324, 181, -1, -1)
+$Button1 = GUICtrlCreateButton("Send", 158, 154, 75, 17)
+$Button2 = GUICtrlCreateButton("Close", 239, 154, 75, 17)
+$Tab1 = GUICtrlCreateTab(2, 2, 321, 169, BitOR($TCS_BOTTOM,$TCS_FLATBUTTONS))
+$TabSheet1 = GUICtrlCreateTabItem("Text")
+$SendList = GUICtrlCreateEdit("", 6, 7, 314, 142, -1, 0)
+$TabSheet2 = GUICtrlCreateTabItem("Settings")
+$ExitCheckbox = GUICtrlCreateCheckbox("Exit When Done", 121, 51, 97, 17)
 GUICtrlSetFont(-1, 8, 400, 0, "Times New Roman")
-$Label2 = GUICtrlCreateLabel("Delay (sec)", 8, 76, 52, 18)
+$UpdelayInput = GUICtrlCreateInput("5", 179, 16, 21, 21)
+$Label1 = GUICtrlCreateLabel("Up Delay (ms)", 116, 20, 68, 18)
 GUICtrlSetFont(-1, 8, 400, 0, "Times New Roman")
-$Input3 = GUICtrlCreateInput("4", 60, 72, 21, 19)
-$Label3 = GUICtrlCreateLabel("Repeat", 89, 54, 36, 18)
+$Label2 = GUICtrlCreateLabel("Start Delay (s)", 9, 20, 76, 18)
 GUICtrlSetFont(-1, 8, 400, 0, "Times New Roman")
-$Label4 = GUICtrlCreateLabel("Repeat"&@LF&"Delay (sec)", 88, 72, 45, 28)
+$StartDelayInput = GUICtrlCreateInput("4", 74, 16, 21, 21)
+$SendRawCheckbox = GUICtrlCreateCheckbox("Send Raw Mode", 12, 51, 97, 17)
 GUICtrlSetFont(-1, 8, 400, 0, "Times New Roman")
-$Input4 = GUICtrlCreateInput("1", 134, 52, 21, 19)
-$Input5 = GUICtrlCreateInput("0", 134, 72, 21, 19)
-$Checkbox2 = GUICtrlCreateCheckbox("Send Raw Mode", 168, 76, 97, 17)
+$DownDelayInput = GUICtrlCreateInput("10", 291, 16, 21, 21)
+$Label5 = GUICtrlCreateLabel("Down Delay (ms)", 217, 20, 75, 18)
 GUICtrlSetFont(-1, 8, 400, 0, "Times New Roman")
-$Radio1 = GUICtrlCreateRadio("Do Nothing", 8, 96, 69, 17)
+$Group3 = GUICtrlCreateGroup("Dashes", 10, 77, 137, 65)
+$NoChangeRadio = GUICtrlCreateRadio("No Change", 15, 90, 69, 17)
 GUICtrlSetState(-1, $GUI_CHECKED)
 GUICtrlSetFont(-1, 8, 400, 0, "Times New Roman")
-$Radio2 = GUICtrlCreateRadio("Remove Dashes", 88, 96, 97, 17)
+$ConvertRadio = GUICtrlCreateRadio("Convert Dashes to Tabs", 15, 122, 129, 17)
 GUICtrlSetFont(-1, 8, 400, 0, "Times New Roman")
-$Radio3 = GUICtrlCreateRadio("Dash 2 Tab", 192, 96, 73, 17)
-GUICtrlSetFont(-1, 8, 400, 0, "Times New Roman")
-$Input6 = GUICtrlCreateInput("5", 229, 52, 21, 19)
-$Label5 = GUICtrlCreateLabel("Down Delay", 168, 52, 59, 18)
+$RemoveDashesRadio = GUICtrlCreateRadio("Remove Dashes", 15, 106, 97, 17)
 GUICtrlSetFont(-1, 8, 400, 0, "Times New Roman")
 GUICtrlCreateGroup("", -99, -99, 1, 1)
-$Button1 = GUICtrlCreateButton("Send", 112, 120, 75, 17, 0)
-$Button2 = GUICtrlCreateButton("Cancel", 192, 120, 75, 17, 0)
-$Checkbox1 = GUICtrlCreateCheckbox("Exit When Done", 4, 120, 97, 17)
-#GUICtrlSetState(-1, $GUI_CHECKED)
+$Group1 = GUICtrlCreateGroup("Repeat", 160, 77, 153, 65)
+$SendCountInput = GUICtrlCreateInput("1", 262, 90, 21, 21)
+$Label3 = GUICtrlCreateLabel("Send Count", 169, 93, 76, 18)
 GUICtrlSetFont(-1, 8, 400, 0, "Times New Roman")
+$Label4 = GUICtrlCreateLabel("Repeat Delay (ms)", 169, 117, 85, 28)
+GUICtrlSetFont(-1, 8, 400, 0, "Times New Roman")
+$RepeatDelayInput = GUICtrlCreateInput("0", 262, 114, 40, 21)
+GUICtrlCreateGroup("", -99, -99, 1, 1)
+$KeepOnTopCheckbox = GUICtrlCreateCheckbox("Keep On Top", 236, 51, 81, 17)
+GUICtrlSetFont(-1, 8, 400, 0, "Times New Roman")
+GUICtrlCreateTabItem("")
 GUISetState(@SW_SHOW)
 #EndRegion ### END Koda GUI section ###
 
+GUICtrlSetOnEvent($Button1, "_GUI_Send")
+GUICtrlSetOnEvent($Button2, "_GUI_Exit")
+GUISetOnEvent($GUI_EVENT_CLOSE, "_GUI_Exit")
 
-GUICtrlSetOnEvent($Button1, "gui_send")
-GUICtrlSetOnEvent($Button2, "user_exit")
-GUISetOnEvent($GUI_EVENT_CLOSE, "user_exit")
+$CurrentKeepOnTop = 0
 
 While 1
-	sleep(10)
+	If $CurrentKeepOnTop = 0 AND GUICtrlRead($KeepOnTopCheckbox) = $GUI_CHECKED Then
+		WinSetOnTop ($Form1, "", 1)
+		$CurrentKeepOnTop = 1
+	Elseif $CurrentKeepOnTop = 1 AND GUICtrlRead($KeepOnTopCheckbox) = $GUI_UNCHECKED Then
+		WinSetOnTop ($Form1, "", 0)
+		$CurrentKeepOnTop = 0
+	EndIf
 
+	Sleep(50)
 WEnd
 
 ;==================================================================================
-Func gui_send()
+Func _GUI_Send()
 	GUISetState(@SW_HIDE)
 
-	$sendfinal=GUICtrlRead($Input1)
-	If GUICtrlRead($Radio2) = 1 Then
-		$sendfinal = StringReplace($sendfinal, "-", "")
-	ElseIf GUICtrlRead($Radio3) = 1 Then
-		$sendfinal = StringReplace($sendfinal, "-", "{TAB}")
+	$SendString=GUICtrlRead($SendList)
+	If GUICtrlRead($RemoveDashesRadio) = 1 Then
+		$SendString = StringReplace($SendString, "-", "")
+	ElseIf GUICtrlRead($ConvertRadio) = 1 Then
+		$SendString = StringReplace($SendString, "-", "{TAB}")
 	EndIf
 
-	Opt("SendKeyDelay",GUICtrlRead($Input2))
-	Sleep(GUICtrlRead($Input3) * 1000)
-	$repdelay = GUICtrlRead($Input5) * 1000
+	Opt("SendKeyDelay",GUICtrlRead($UpDelayInput))
+	Opt("SendKeyDownDelay",GUICtrlRead($DownDelayInput))
 
-	Opt("SendKeyDownDelay",10)
+	Sleep(GUICtrlRead($StartDelayInput) * 1000)
 
-	For $i=1 To GUICtrlRead($Input4)
-		Sleep($repdelay)
-		If GUICtrlRead($Checkbox2) = 1 Then
-			Send($sendfinal,1)
+	$RepeatDelay = GUICtrlRead($RepeatDelayInput) * 1000
+	For $i=1 To GUICtrlRead($SendCountInput)
+		If GUICtrlRead($SendRawCheckbox) = 1 Then
+			Send($SendString, 1)
 		Else
-			Send($sendfinal)
+			Send($SendString)
 		EndIf
+
+		Sleep($RepeatDelay)
 	Next
 
-	If GUICtrlRead($Checkbox1) = 1 Then Exit
+	If GUICtrlRead($ExitCheckbox) = 1 Then Exit
+
 	Sleep(500)
 	GUISetState(@SW_SHOW)
 EndFunc
 
-func user_exit()
+func _GUI_Exit()
 	exit
 endfunc
