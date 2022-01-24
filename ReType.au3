@@ -1,8 +1,9 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
-#AutoIt3Wrapper_Res_Fileversion=3.0.0.7
+#AutoIt3Wrapper_Res_Fileversion=3.0.0.8
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
 #AutoIt3Wrapper_Res_Language=1033
 #AutoIt3Wrapper_Res_requestedExecutionLevel=asInvoker
+#AutoIt3Wrapper_Icon=_Icon.ico
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 
 #include <ButtonConstants.au3>
@@ -21,7 +22,7 @@ Global $VERSION=FileGetVersion(@AutoItExe)
 Global $GUITITLE=$TITLE&" v"&$VERSION
 
 #Region ### START Koda GUI section ###
-$Form1 = GUICreate($GUITITLE, 324, 181, -1, -1)
+$Form1 = GUICreate(, 324, 181, -1, -1)
 $Button1 = GUICtrlCreateButton("Send", 158, 154, 75, 17)
 $Button2 = GUICtrlCreateButton("Close", 239, 154, 75, 17)
 $Tab1 = GUICtrlCreateTab(2, 2, 321, 169, BitOR($TCS_BOTTOM,$TCS_FLATBUTTONS))
