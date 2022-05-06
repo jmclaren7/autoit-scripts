@@ -493,7 +493,8 @@ EndFunc ;==>_sini
 ; Notes:			Checks if global $LogToFile=1 or $CmdLineRaw contains "-debuglog" to see if log file should be writen
 ;					If Text = "OPENLOG" then log file is displayed (casesense)
 ; Author(s):        JohnMC - JohnsCS.com
-; Date/Version:		06/12/2019 --  v1.2 Added back -debuglog switch and updated notes
+; Date/Version:		05/05/2022 --  V1.3 Added $iSameLine option value "2" which will replace the current line
+;					06/12/2019 --  v1.2 Added back -debuglog switch and updated notes
 ;					06/1/2012  --  v1.1
 ;===============================================================================
 Func _ConsoleWrite($sMessage, $iLevel=1, $iSameLine=0)
@@ -513,7 +514,8 @@ Func _ConsoleWrite($sMessage, $iLevel=1, $iSameLine=0)
 		Local $sTime=@YEAR&"-"&@MON&"-"&@MDAY&" "&@HOUR&":"&@MIN&":"&@SEC&"> " ; Generate Timestamp
 		$sMessage=StringReplace($sMessage,@CRLF,@CRLF&_StringRepeat(" ",StringLen($sTime))) ; Uses spaces after initial line if string had returns
 
-		if NOT $iSameLine then $sMessage=@CRLF&$sTime&$sMessage
+		If $iSameLine=0 then $sMessage=@CRLF&$sTime&$sMessage
+		If $iSameLine=2 then $sMessage=@CR&$sTime&$sMessage
 
 		ConsoleWrite($sMessage)
 
