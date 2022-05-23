@@ -49,7 +49,7 @@ Endfunc
 
 Func AuthClickCopy()
 	_ConsoleWrite("AuthClickCopy")
-	ControlClick($WinTitle, "", "", "Left", 1, 340, 480)
+	ControlClick($WinTitle, "", "", "Left", 1, 350, 530)
 Endfunc
 
 Func _ConsoleWrite($Text)
