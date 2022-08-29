@@ -1,8 +1,8 @@
 #NoTrayIcon
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=_Icon.ico
-#AutoIt3Wrapper_Change2CUI=y
-#AutoIt3Wrapper_Res_Fileversion=1.0.0.64
+#AutoIt3Wrapper_Change2CUI=n
+#AutoIt3Wrapper_Res_Fileversion=1.0.0.68
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
 #AutoIt3Wrapper_Res_Language=1033
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
@@ -58,9 +58,6 @@ Wend
 $ExcludeUsers = IniRead($SettingsFileFullPath, "Settings", "ExcludeUsers", "notset")
 If $ExcludeUsers = "notset" Then IniWrite($SettingsFileFullPath, "Settings", "ExcludeUsers", "")
 
-;Execute the AD query to get user list and disabled status
-;$Command = 'dsquery group -samid "Domain Users"  | dsget group -members | dsget user -samid -disabled'
-;$iPid = Run(@ComSpec & " /c " & $Command, "", @SW_MINIMIZE, $STDERR_MERGED)
 
 $PSCommand = 'Get-ADGroupMember \"Domain users\" -recursive | Get-ADUser | Where { $_.Enabled -eq $True} | Select SamAccountName | Format-Table -HideTableHeaders'
 $PSCommand = 'powershell.exe -nologo -executionpolicy bypass -WindowStyle hidden -noprofile -command "&{' & $PSCommand & '}"'
@@ -86,20 +83,7 @@ For $i=2 to $aData[0]-1
 	;Trim raw lines that contain trailing and leading spaces
 	$User = StringStripWS($User, $STR_STRIPLEADING+$STR_STRIPTRAILING)
 
-	;Skip disabled users and trim disabled status
-	;If StringRight($User, 3) = " no" Then
-	;	$User = StringStripWS(StringTrimRight($User, 3), $STR_STRIPLEADING+$STR_STRIPTRAILING)
-
-	;Elseif StringRight($User, 3) = "yes" Then
-	;	$User = StringStripWS(StringTrimRight($User, 3), $STR_STRIPLEADING+$STR_STRIPTRAILING)
-	;	_ConsoleWrite($User & " - skipped because deactivated")
-	;	ContinueLoop
-	;Else
-	;	_ConsoleWrite("Invalid line, $User=""" & $User & """")
-	;	ContinueLoop
-	;EndIf
-
-	;Skip empty usernames
+	;Skip empty
 	If $User = "" Then ContinueLoop
 
 	;Skip users that exist in skip list
@@ -116,18 +100,21 @@ For $i=2 to $aData[0]-1
 		_ConsoleWrite($User & " - user folder doesn't exist, creating folder")
 		If $Update Then
 			DirCreate($UserFolder)
-			;Set permisions to write (not full)
-			$Command = 'iCACLS "'&$UserFolder&'" /E /T /C /Grant "'&$User&'":M'
-			_ConsoleWrite($User & " - raw command: "&$Command)
-			RunWait(@ComSpec & ' /c ' & $Command,'',@SW_HIDE)
 			_ConsoleWrite($User & " - folder created, return: "&@error)
-
 		EndIf
 
 	Else
 		_ConsoleWrite($User & " - folder exists")
 
 	Endif
+
+	If $Update Then
+		;Set permisions to write (not full)
+		$Command = 'iCACLS "'&$UserFolder&'" /T /C /Grant "'&$User&'":(OI)(CI)M'
+		_ConsoleWrite($User & " - raw command: "&$Command)
+		RunWait(@ComSpec & ' /c ' & $Command,'',@SW_HIDE)
+	Endif
+
 
 	; If NestedFolder1 is set and does not exist, create folder
 	$NestedFolder1 = IniRead($SettingsFileFullPath, "Settings", "NestedFolder1", "")
