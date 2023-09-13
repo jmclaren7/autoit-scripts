@@ -312,21 +312,22 @@ endfunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		09/8/2023  --  v1.3
 ;===============================================================================
-Func _ProcessWaitClose($iPid)
+Func _ProcessWaitClose($iPid, $Live = False)
 	Local $sData, $sStdOut
-	ProcessWait ($iPid, 2)
+	ProcessWait($iPid, 2)
 	While 1
 		$sStdOut = StdoutRead($iPid)
 		If @error Then ExitLoop
-		$sStdOut=StringReplace($sStdOut,@CR&@LF&@CR&@LF,@CR&@LF)
+		$sStdOut = StringReplace($sStdOut, @CR&@LF&@CR&@LF, @CR&@LF)
 		$sData &= $sStdOut
+		If $Live = _ConsoleWrite($sStdOut)
 		Sleep(5)
 	WEnd
 
 	While 1
 		$sStdOut = StderrRead($iPid)
 		If @error Then ExitLoop
-		$sStdOut=StringReplace($sStdOut,@CR&@LF&@CR&@LF,@CR&@LF)
+		$sStdOut = StringReplace($sStdOut, @CR&@LF&@CR&@LF, @CR&@LF)
 		$sData &= $sStdOut
 		Sleep(5)
 	WEnd
@@ -343,7 +344,7 @@ endfunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		01/16/2016  --  v1.1
 ;===============================================================================
-Func _RunWait($sProgram, $Working="", $Show = @SW_HIDE, $Opt = BitOR($STDIN_CHILD, $STDOUT_CHILD, $STDERR_CHILD))
+Func _RunWait($sProgram, $Working = "", $Show = @SW_HIDE, $Opt = BitOR($STDIN_CHILD, $STDOUT_CHILD, $STDERR_CHILD))
 	Local $sData, $sStdOut, $iPid
 	$iPid=Run($sProgram, $Working, $Show, $Opt)
 	If @error Then
