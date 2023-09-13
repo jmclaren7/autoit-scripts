@@ -310,20 +310,27 @@ endfunc
 ; Return Value(s):  On Success -
 ; 					On Failure -
 ; Author(s):        JohnMC - JohnsCS.com
-; Date/Version:		01/16/2016  --  v1.2
+; Date/Version:		09/8/2023  --  v1.3
 ;===============================================================================
 Func _ProcessWaitClose($iPid)
 	Local $sData, $sStdOut
 	ProcessWait ($iPid, 2)
-	While ProcessExists($iPid)
-		Sleep(10)
+	While 1
 		$sStdOut = StdoutRead($iPid)
-		If @error Then ContinueLoop
-		;$sStdOut=StringReplace($sStdOut,@CR&@LF,""); I don't know why this exists, we shouldn't remove anything
-		$sStdOut=StringReplace($sStdOut,@CR&@LF&@CR&@LF,@CR&@LF) ; special purpose replacment for above, seems like this should be handled in the output function
-		;_ConsoleWrite($sStdOut)
+		If @error Then ExitLoop
+		$sStdOut=StringReplace($sStdOut,@CR&@LF&@CR&@LF,@CR&@LF)
 		$sData &= $sStdOut
+		Sleep(5)
 	WEnd
+
+	While 1
+		$sStdOut = StderrRead($iPid)
+		If @error Then ExitLoop
+		$sStdOut=StringReplace($sStdOut,@CR&@LF&@CR&@LF,@CR&@LF)
+		$sData &= $sStdOut
+		Sleep(5)
+	WEnd
+
 	return $sData
 endfunc
 ;===============================================================================
@@ -339,12 +346,14 @@ endfunc
 Func _RunWait($sProgram, $Working="", $Show = @SW_HIDE, $Opt = BitOR($STDIN_CHILD, $STDOUT_CHILD, $STDERR_CHILD))
 	Local $sData, $sStdOut, $iPid
 	$iPid=Run($sProgram, $Working, $Show, $Opt)
-	If @error then
+	If @error Then
 		_ConsoleWrite("_RunWait: Couldn't Run "&$sProgram)
-		return $iPid
+		return SetError (1, 0, 0)
 	endif
 
-	_ConsoleWrite(@CRLF&_ProcessWaitClose($iPid))
+	$sData = _ProcessWaitClose($iPid)
+
+	_ConsoleWrite("_RunWait Returned:" & @CRLF & $sData)
 
 	return $iPid
 endfunc
@@ -511,8 +520,14 @@ Func _ConsoleWrite($sMessage, $iLevel=1, $iSameLine=0)
 		$sMessage=StringReplace($sMessage,@CRLF&@CRLF,@CRLF) ;Remove Double CR
 		If StringRight($sMessage,StringLen(@CRLF))=@CRLF Then $sMessage=StringTrimRight($sMessage,StringLen(@CRLF)) ; Remove last CR
 
-		Local $sTime=@YEAR&"-"&@MON&"-"&@MDAY&" "&@HOUR&":"&@MIN&":"&@SEC&"> " ; Generate Timestamp
-		$sMessage=StringReplace($sMessage,@CRLF,@CRLF&_StringRepeat(" ",StringLen($sTime))) ; Uses spaces after initial line if string had returns
+		; Generate Timestamp
+		Local $sTime=@YEAR&"-"&@MON&"-"&@MDAY&" "&@HOUR&":"&@MIN&":"&@SEC&"> "
+
+		; Force CRLF
+		$sMessage = StringRegExpReplace($sMessage, "((?<!\x0d)\x0a|\x0d(?!\x0a))", @CRLF)
+
+		; Adds spaces for alignment after initial line
+		$sMessage=StringReplace($sMessage,@CRLF,@CRLF&_StringRepeat(" ",StringLen($sTime)))
 
 		If $iSameLine=0 then $sMessage=@CRLF&$sTime&$sMessage
 		If $iSameLine=2 then $sMessage=@CR&$sTime&$sMessage
