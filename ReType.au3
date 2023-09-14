@@ -22,7 +22,7 @@ Global $VERSION=FileGetVersion(@AutoItExe)
 Global $GUITITLE=$TITLE&" v"&$VERSION
 
 #Region ### START Koda GUI section ###
-$Form1 = GUICreate(, 324, 181, -1, -1)
+$Form1 = GUICreate($GUITITLE, 324, 181, -1, -1)
 $Button1 = GUICtrlCreateButton("Send", 158, 154, 75, 17)
 $Button2 = GUICtrlCreateButton("Close", 239, 154, 75, 17)
 $Tab1 = GUICtrlCreateTab(2, 2, 321, 169, BitOR($TCS_BOTTOM,$TCS_FLATBUTTONS))
