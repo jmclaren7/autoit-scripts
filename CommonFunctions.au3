@@ -317,16 +317,16 @@ Func _ProcessWaitClose($iPid, $Live = False)
 	ProcessWait($iPid, 2)
 	While 1
 		$sStdOut = StdoutRead($iPid)
-		If @error Then ExitLoop
+		If @error And Not ProcessExists($iPid) Then ExitLoop
 		$sStdOut = StringReplace($sStdOut, @CR&@LF&@CR&@LF, @CR&@LF)
 		$sData &= $sStdOut
-		If $Live Then _ConsoleWrite($sStdOut)
+		If $Live And $sStdOut <> "" Then _ConsoleWrite($sStdOut)
 		Sleep(5)
 	WEnd
 
 	While 1
 		$sStdOut = StderrRead($iPid)
-		If @error Then ExitLoop
+		If @error And Not ProcessExists($iPid) Then ExitLoop
 		$sStdOut = StringReplace($sStdOut, @CR&@LF&@CR&@LF, @CR&@LF)
 		$sData &= $sStdOut
 		Sleep(5)
@@ -497,7 +497,7 @@ EndFunc ;==>_sini
 ; Call With:		_ConsoleWrite($Text,$SameLine)
 ; Parameter(s): 	$Text - Text to print
 ;					$Level - The level the given message *is*
-;					$SameLine - (Optional) Will continue to print on the same line if set to 1
+;					$SameLine - (Optional) Will continue to print on the same line if set to 1, replace line if set to 2
 ;
 ; Return Value(s):  The Text Originaly Sent
 ; Notes:			Checks if global $LogToFile=1 or $CmdLineRaw contains "-debuglog" to see if log file should be writen
@@ -507,15 +507,16 @@ EndFunc ;==>_sini
 ;					06/12/2019 --  v1.2 Added back -debuglog switch and updated notes
 ;					06/1/2012  --  v1.1
 ;===============================================================================
-Func _ConsoleWrite($sMessage, $iLevel=1, $iSameLine=0)
+Func _ConsoleWrite($sMessage, $iLevel = 1, $iSameLine = 0)
 	Local $hHandle, $sData
 
-	if Eval("LogFilePath")="" Then Global $LogFilePath = StringTrimRight(@ScriptFullPath,4)&"_Log.txt"
-	if Eval("LogFileMaxSize")="" Then Global $LogFileMaxSize = 0
-	if Eval("LogToFile")="" Then Global $LogToFile = False
+	if Eval("LogFilePath") = "" Then Global $LogFilePath = StringTrimRight(@ScriptFullPath,4)&"_Log.txt"
+	if Eval("LogFileMaxSize") = "" Then Global $LogFileMaxSize = 0
+	if Eval("LogToFile") = "" Then Global $LogToFile = False
 	if StringInStr($CmdLineRaw, "-debuglog") Then Global $LogToFile = True
-	if Eval("LogLevel")="" Then Global $LogLevel = 3 ; The level of message to log - If no level set to 3
-	If $sMessage=="OPENLOG" Then Return ShellExecute($LogFilePath)
+	if Eval("LogLevel") = "" Then Global $LogLevel = 3 ; The level of message to log - If no level set to 3
+
+	If $sMessage == "OPENLOG" Then Return ShellExecute($LogFilePath)
 
 	If $iLevel<=$LogLevel then
 		$sMessage=StringReplace($sMessage,@CRLF&@CRLF,@CRLF) ;Remove Double CR
