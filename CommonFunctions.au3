@@ -320,7 +320,7 @@ Func _ProcessWaitClose($iPid, $Live = False)
 		If @error Then ExitLoop
 		$sStdOut = StringReplace($sStdOut, @CR&@LF&@CR&@LF, @CR&@LF)
 		$sData &= $sStdOut
-		If $Live = _ConsoleWrite($sStdOut)
+		If $Live Then _ConsoleWrite($sStdOut)
 		Sleep(5)
 	WEnd
 
@@ -344,7 +344,7 @@ endfunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		01/16/2016  --  v1.1
 ;===============================================================================
-Func _RunWait($sProgram, $Working = "", $Show = @SW_HIDE, $Opt = BitOR($STDIN_CHILD, $STDOUT_CHILD, $STDERR_CHILD))
+Func _RunWait($sProgram, $Working = "", $Show = @SW_HIDE, $Opt = BitOR($STDIN_CHILD, $STDOUT_CHILD, $STDERR_CHILD), $Live = False)
 	Local $sData, $sStdOut, $iPid
 	$iPid=Run($sProgram, $Working, $Show, $Opt)
 	If @error Then
@@ -352,7 +352,7 @@ Func _RunWait($sProgram, $Working = "", $Show = @SW_HIDE, $Opt = BitOR($STDIN_CH
 		return SetError (1, 0, 0)
 	endif
 
-	$sData = _ProcessWaitClose($iPid)
+	$sData = _ProcessWaitClose($iPid, $Live)
 
 	_ConsoleWrite("_RunWait Returned:" & @CRLF & $sData)
 
