@@ -345,11 +345,11 @@ endfunc
 ; Date/Version:		01/16/2016  --  v1.1
 ;===============================================================================
 Func _RunWait($sProgram, $Working = "", $Show = @SW_HIDE, $Opt = BitOR($STDIN_CHILD, $STDOUT_CHILD, $STDERR_CHILD), $Live = False)
-	Local $sData, $sStdOut, $iPid
-	$iPid=Run($sProgram, $Working, $Show, $Opt)
+	Local $sData, $iPid
+	$iPid = Run($sProgram, $Working, $Show, $Opt)
 	If @error Then
-		_ConsoleWrite("_RunWait: Couldn't Run "&$sProgram)
-		return SetError (1, 0, 0)
+		_ConsoleWrite("_RunWait: Couldn't Run " & $sProgram)
+		return SetError(1, 0, 0)
 	endif
 
 	$sData = _ProcessWaitClose($iPid, $Live)
