@@ -5,6 +5,7 @@
 ;#Include <Array.au3>
 #include <Security.au3>
 #Include <String.au3>
+#include <AutoItConstants.au3>
 #include <File.au3>
 #include <GUIConstantsEx.au3>
 ;===============================================================================
@@ -302,6 +303,29 @@ func _FileInUseWait($sFilePath, $Timeout=0, $Sleep=2000)
 	wend
 endfunc
 ;===============================================================================
+; Function Name:    _RunWait
+; Description:		Improved version of RunWait that plays nice with my console logging
+; Call With:		_RunWait($Run, $Working="")
+; Parameter(s):
+; Return Value(s):  On Success - Return value of Run() (Should be PID)
+; 					On Failure - Return value of Run()
+; Author(s):        JohnMC - JohnsCS.com
+; Date/Version:		01/16/2016  --  v1.1
+;===============================================================================
+Func _RunWait($sProgram, $Working = "", $Show = @SW_HIDE, $Opt = $STDERR_MERGED, $Live = False)
+	Local $sData, $iPid
+
+	$iPid = Run($sProgram, $Working, $Show, $Opt)
+	If @error Then
+		_ConsoleWrite("_RunWait: Couldn't Run " & $sProgram)
+		return SetError(1, 0, 0)
+	endif
+
+	$sData = _ProcessWaitClose($iPid, $Live)
+
+	return SetError(0, $sData, $iPid)
+endfunc
+;===============================================================================
 ; Function Name:    _ProcessWaitClose
 ; Description:		ProcessWaitClose that handles stdout from the running process
 ;					Proccess must have been started with $STDERR_CHILD + $STDOUT_CHILD
@@ -312,51 +336,36 @@ endfunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		09/8/2023  --  v1.3
 ;===============================================================================
-Func _ProcessWaitClose($iPid, $Live = False)
-	Local $sData, $sStdOut
-	ProcessWait($iPid, 2)
-	While 1
-		$sStdOut = StdoutRead($iPid)
-		If @error And Not ProcessExists($iPid) Then ExitLoop
-		$sStdOut = StringReplace($sStdOut, @CR&@LF&@CR&@LF, @CR&@LF)
-		$sData &= $sStdOut
-		If $Live And $sStdOut <> "" Then _ConsoleWrite($sStdOut)
-		Sleep(5)
-	WEnd
+Func _ProcessWaitClose($iPid, $Live = False, $Diag = False)
+	Local $sData, $sStdRead
 
 	While 1
-		$sStdOut = StderrRead($iPid)
+		$sStdRead = StdoutRead($iPid)
+		If @error Or $sStdRead = "" Then StderrRead($iPid)
 		If @error And Not ProcessExists($iPid) Then ExitLoop
-		$sStdOut = StringReplace($sStdOut, @CR&@LF&@CR&@LF, @CR&@LF)
-		$sData &= $sStdOut
+		$sStdRead = StringReplace($sStdRead, @CR&@LF&@CR&@LF, @CR&@LF)
+
+		If $Diag Then
+			$sStdRead = StringReplace($sStdRead, @CRLF, "@CRLF")
+			$sStdRead = StringReplace($sStdRead, @CR, "@CR"&@CR)
+			$sStdRead = StringReplace($sStdRead, @LF, "@LF"&@LF)
+			$sStdRead = StringReplace($sStdRead, "@CRLF", "@CRLF"&@CRLF)
+		EndIf
+
+		If $sStdRead <> @CRLF Then
+			$sData &= $sStdRead
+			If $Live And $sStdRead <> "" Then
+				If StringRight($sStdRead, 2) = @CRLF Then $sStdRead = StringTrimRight($sStdRead, 2)
+				;If StringRight($sStdRead, 1) = @CR Then $sStdRead = StringTrimRight($sStdRead, 1) ; This may never be needed, leaving disabled
+				If StringRight($sStdRead, 1) = @LF Then $sStdRead = StringTrimRight($sStdRead, 1)
+				_ConsoleWrite($sStdRead)
+			Endif
+		Endif
+
 		Sleep(5)
 	WEnd
 
 	return $sData
-endfunc
-;===============================================================================
-; Function Name:    _RunWait
-; Description:		Improved version of RunWait that plays nice with my console logging
-; Call With:		_RunWait($Run, $Working="")
-; Parameter(s):
-; Return Value(s):  On Success - Return value of Run() (Should be PID)
-; 					On Failure - Return value of Run()
-; Author(s):        JohnMC - JohnsCS.com
-; Date/Version:		01/16/2016  --  v1.1
-;===============================================================================
-Func _RunWait($sProgram, $Working = "", $Show = @SW_HIDE, $Opt = BitOR($STDIN_CHILD, $STDOUT_CHILD, $STDERR_CHILD), $Live = False)
-	Local $sData, $iPid
-	$iPid = Run($sProgram, $Working, $Show, $Opt)
-	If @error Then
-		_ConsoleWrite("_RunWait: Couldn't Run " & $sProgram)
-		return SetError(1, 0, 0)
-	endif
-
-	$sData = _ProcessWaitClose($iPid, $Live)
-
-	_ConsoleWrite("_RunWait Returned:" & @CRLF & $sData)
-
-	return $iPid
 endfunc
 ;===============================================================================
 ; Function Name:    _TreeList()
