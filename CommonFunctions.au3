@@ -22,17 +22,23 @@
 Func _IsChecked($idControlID)
     Return BitAND(GUICtrlRead($idControlID), $GUI_CHECKED) = $GUI_CHECKED
 EndFunc
-;===============================================================================
-;
-; Description:
-;
-; Parameter(s):     Required :
-;                   Optional :
-; Return Value(s):  On Success -
-;                   On Failure -
-; Author(s):
-;
-;===============================================================================
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _StringExtract
+; Description ...:
+; Syntax ........: _StringExtract($sString, $sStartSearch, $sEndSearch[, $iStartTrim = 0[, $iEndTrim = 0]])
+; Parameters ....: $sString             - a string value.
+;                  $sStartSearch        - a string value.
+;                  $sEndSearch          - a string value.
+;                  $iStartTrim          - [optional] an integer value. Default is 0.
+;                  $iEndTrim            - [optional] an integer value. Default is 0.
+; Return values .: None
+; Author ........: Your Name
+; Modified ......:
+; Remarks .......:
+; Related .......:
+; Link ..........:
+; Example .......: No
+; ===============================================================================================================================
 Func _StringExtract($sString, $sStartSearch, $sEndSearch, $iStartTrim = 0, $iEndTrim = 0)
 	$iStartPos = StringInStr($sString, $sStartSearch)
 	If Not $iStartPos Then Return SetError(1, 0, 0)
@@ -700,7 +706,7 @@ endfunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		10/15/2014  --  v1.1
 ;===============================================================================
-func _OnlyInstance($iFlag)
+Func _OnlyInstance($iFlag)
 	Local $ERROR_ALREADY_EXISTS = 183, $Handle, $LastError, $Message
 
 	if @Compiled=0 then return 0
