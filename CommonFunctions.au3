@@ -329,7 +329,7 @@ Func _RunWait($sProgram, $Working = "", $Show = @SW_HIDE, $Opt = $STDERR_MERGED,
 
 	$sData = _ProcessWaitClose($iPid, $Live)
 
-	return SetError(0, $sData, $iPid)
+	return SetError(0, $iPid, $sData)
 endfunc
 ;===============================================================================
 ; Function Name:    _ProcessWaitClose
