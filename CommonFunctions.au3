@@ -1,27 +1,15 @@
 ;===============================================================================
-;GITHub version
+;GitHub version
 ;===============================================================================
 #include-once
-;#Include <Array.au3>
+#include <Array.au3>
 #include <Security.au3>
 #include <String.au3>
 #include <AutoItConstants.au3>
 #include <File.au3>
 #include <GUIConstantsEx.au3>
 ;===============================================================================
-;
-; Description:
-;
-; Parameter(s):     Required :
-;                   Optional :
-; Return Value(s):  On Success -
-;                   On Failure -
-; Author(s):
-;
-;===============================================================================
-Func _IsChecked($idControlID)
-	Return BitAND(GUICtrlRead($idControlID), $GUI_CHECKED) = $GUI_CHECKED
-EndFunc   ;==>_IsChecked
+
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _StringExtract
 ; Description ...:
@@ -260,13 +248,13 @@ Func _FileInUse($sFilename, $iAccess = 0)
 	$iDA = $GENERIC_READ
 	If BitAND($iAccess, 1) <> 0 Then $iDA = BitOR($GENERIC_READ, $GENERIC_WRITE)
 	$aRet = DllCall("Kernel32.dll", "hwnd", "CreateFile", _
-			"str", $sFilename, _                         ;lpFileName
-			"dword", $iDA, _                         ;dwDesiredAccess
-			"dword", 0x00000000, _                         ;dwShareMode = DO NOT SHARE
-			"dword", 0x00000000, _                         ;lpSecurityAttributes = NULL
-			"dword", $OPEN_EXISTING, _                         ;dwCreationDisposition = OPEN_EXISTING
-			"dword", $FILE_ATTRIBUTE_NORMAL, _                         ;dwFlagsAndAttributes = FILE_ATTRIBUTE_NORMAL
-			"hwnd", 0)                         ;hTemplateFile = NULL
+			"str", $sFilename, _ ;lpFileName
+			"dword", $iDA, _ ;dwDesiredAccess
+			"dword", 0x00000000, _ ;dwShareMode = DO NOT SHARE
+			"dword", 0x00000000, _ ;lpSecurityAttributes = NULL
+			"dword", $OPEN_EXISTING, _ ;dwCreationDisposition = OPEN_EXISTING
+			"dword", $FILE_ATTRIBUTE_NORMAL, _ ;dwFlagsAndAttributes = FILE_ATTRIBUTE_NORMAL
+			"hwnd", 0) ;hTemplateFile = NULL
 	$iError = @error
 	If @error Or IsArray($aRet) = 0 Then Return SetError($iError, 0, -1)
 	$hFile = $aRet[0]
@@ -644,9 +632,9 @@ Func _ConsoleWrite($sMessage, $iLevel = 1, $iSameLine = 0)
 	Return $sMessage
 EndFunc   ;==>_ConsoleWrite
 ;===============================================================================
-; Function Name:    _ntime()
+; Function Name:    _TimeStamp()
 ; Description:		Returns time since 0 unlike the unknown timestamp behavior of timer_init
-; Call With:		_ntime([$Flag])
+; Call With:		_TimeStamp([$Flag])
 ; Parameter(s): 	$Flag - (Optional) Default is 0 (Miliseconds)
 ;						1 = Return Total Seconds
 ;						2 = Return Total Minutes
@@ -654,7 +642,7 @@ EndFunc   ;==>_ConsoleWrite
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		01/29/2010  --  v1.0
 ;===============================================================================
-Func _ntime($Flag = 0)
+Func _TimeStamp($Flag = 0)
 	Local $Time
 
 	$Time = @YEAR * 365 * 24 * 60 * 60 * 1000
@@ -667,11 +655,11 @@ Func _ntime($Flag = 0)
 	If $Flag = 1 Then Return Int($Time / 1000) ;Return Seconds
 	If $Flag = 2 Then Return Int($Time / 1000 / 60) ;Return Minutes
 	Return Int($Time) ;Return Miliseconds
-EndFunc   ;==>_ntime
+EndFunc   ;==>_TimeStamp
 ;===============================================================================
-; Function Name:    _proc_waitnew()
+; Function Name:    _ProcessWaitNew()
 ; Description:		Wait for a new proccess to be created before continuing
-; Call With:		_proc_waitnew($proc,$timeout=0)
+; Call With:		_ProcessWaitNew($proc,$timeout=0)
 ; Parameter(s): 	$Process - PID or proccess name
 ;					$Timeout - (Optional) Miliseconds Before Giving Up
 ; Return Value(s):  On Success - 1
@@ -679,32 +667,32 @@ EndFunc   ;==>_ntime
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		01/29/2010  --  v1.0
 ;===============================================================================
-Func _proc_waitnew($Process, $Timeout = 0)
-	Local $Count1 = _proc_count(), $Count2
-	Local $StartTime = _ntime()
+Func _ProcessWaitNew($Process, $Timeout = 0)
+	Local $Count1 = _ProcessCount(), $Count2
+	Local $StartTime = _TimeStamp()
 
 	While 1
-		$Count2 = _proc_count()
+		$Count2 = _ProcessCount()
 		If $Count2 > $Count1 Then Return 1
 		If $Count2 < $Count1 Then $Count1 = $Count2
 
-		If $Timeout > 0 And $StartTime < _ntime() - $Timeout Then ExitLoop
+		If $Timeout > 0 And $StartTime < _TimeStamp() - $Timeout Then ExitLoop
 		Sleep(100)
 	WEnd
 
 	Return 0
-EndFunc   ;==>_proc_waitnew
+EndFunc   ;==>_ProcessWaitNew
 ;===============================================================================
-; Function Name:    _proc_count()
+; Function Name:    _ProcessCount()
 ; Description:		Returns the number of processes with the same name
-; Call With:		_proc_count([$Process[,$OnlyUser]])
+; Call With:		_ProcessCount([$Process[,$OnlyUser]])
 ; Parameter(s): 	$Process - PID or process name
 ;					$OnlyUser - Only evaluate processes from this user
 ; Return Value(s):  On Success - Count
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		01/29/2010  --  v1.0
 ;===============================================================================
-Func _proc_count($Process = @AutoItPID, $OnlyUser = "")
+Func _ProcessCount($Process = @AutoItPID, $OnlyUser = "")
 	Local $Count = 0, $Array = ProcessList($Process)
 
 	For $i = 1 To $Array[0][0]
@@ -715,7 +703,7 @@ Func _proc_count($Process = @AutoItPID, $OnlyUser = "")
 	Next
 
 	Return $Count
-EndFunc   ;==>_proc_count
+EndFunc   ;==>_ProcessCount
 ;===============================================================================
 ; Function Name:    _ProcessOwner()
 ; Description:		Gets username of the owner of a PID
@@ -824,23 +812,23 @@ Func _MsgBox($Flag, $Title, $Text, $Timeout = 0)
 	Return Run('"' & @AutoItExe & '"' & ' /AutoIt3ExecuteLine "msgbox(' & $Flag & ',''' & $Title & ''',''' & $Text & ''',''' & $Timeout & ''')"')
 EndFunc   ;==>_MsgBox
 ;===============================================================================
-; Function Name:    _drive_find()
+; Function Name:    _GetDriveFromSerial()
 ; Description:		Find a drives letter based on the drives serial
-; Call With:		_drive_find($Serial)
+; Call With:		_GetDriveFromSerial($Serial)
 ; Parameter(s): 	$Serial - Serial of the drive
 ; Return Value(s):  On Success - Drive letter with ":"
 ; 					On Failure - 0
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		01/29/2010  --  v1.0
 ;===============================================================================
-Func _drive_find($Serial)
+Func _GetDriveFromSerial($Serial)
 	Local $Drivelist
 	$Drivelist = StringSplit("c:,d:,e:,f:,g:,h:,i:,j:,k:,l:,m:,n:,o:,p:,q:,r:,s:,t:,u:,v:,w:,x:,y:,z:", ",")
 	For $i = 1 To $Drivelist[0]
 		If (DriveGetSerial($Drivelist[$i]) = $Serial And DriveStatus($Drivelist[$i]) = "READY") Then Return $Drivelist[$i]
 	Next
 	Return 0
-EndFunc   ;==>_drive_find
+EndFunc   ;==>_GetDriveFromSerial
 
 ;===============================================================================
 ; Function Name:    _Speak()
@@ -1085,11 +1073,9 @@ Func _WinGetClientPos($hWnd, $Absolute = 1)
 EndFunc   ;==>_WinGetClientPos
 ;===============================================================================
 ; Function Name:    _WinMoveClient
-; Description:		Retrieves the position and size of the client area of given window
-; Call With:		_WinMoveClient($hWin)
-; Parameter(s): 	$hWnd - Handle to window
-;					$Absolute - 1 = Get coordinates relative to the screen (deafult)
-;								0 = Get coordinates relative to the window
+; Description:		Position and size the client area of given window
+; Call With:		_WinMoveClient()
+; Parameter(s):
 ; Return Value(s):	Success - Handle to the window
 ;					Failure - 0
 ; Author(s):        JohnMC - JohnsCS.com
