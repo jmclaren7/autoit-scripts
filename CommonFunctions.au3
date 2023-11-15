@@ -4,7 +4,7 @@
 #include-once
 ;#Include <Array.au3>
 #include <Security.au3>
-#Include <String.au3>
+#include <String.au3>
 #include <AutoItConstants.au3>
 #include <File.au3>
 #include <GUIConstantsEx.au3>
@@ -20,8 +20,8 @@
 ;
 ;===============================================================================
 Func _IsChecked($idControlID)
-    Return BitAND(GUICtrlRead($idControlID), $GUI_CHECKED) = $GUI_CHECKED
-EndFunc
+	Return BitAND(GUICtrlRead($idControlID), $GUI_CHECKED) = $GUI_CHECKED
+EndFunc   ;==>_IsChecked
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _StringExtract
 ; Description ...:
@@ -48,11 +48,11 @@ Func _StringExtract($sString, $sStartSearch, $sEndSearch, $iStartTrim = 0, $iEnd
 	If Not $iCount Then Return SetError(2, 0, 0)
 	$iCount = $iCount - $iStartPos
 
-	$sNewString = StringMid ( $sString, $iStartPos + $iStartTrim, $iCount + $iEndTrim - $iStartTrim)
+	$sNewString = StringMid($sString, $iStartPos + $iStartTrim, $iCount + $iEndTrim - $iStartTrim)
 
 	Return $sNewString
 
-EndFunc
+EndFunc   ;==>_StringExtract
 
 ;===============================================================================
 ;
@@ -75,28 +75,28 @@ EndFunc
 ;
 ;===============================================================================
 Func _GetUnixTimeStamp($year = 0, $mon = 0, $days = 0, $hour = 0, $min = 0, $sec = 0)
-    If $year = 0 Then $year = Number(@YEAR)
-    If $mon = 0 Then $mon = Number(@MON)
-    If $days = 0 Then $days = Number(@MDAY)
-    If $hour = 0 Then $hour = Number(@HOUR)
-    If $min = 0 Then $min = Number(@MIN)
-    If $sec = 0 Then $sec = Number(@SEC)
-    Local $NormalYears = 0
-    Local $LeepYears = 0
-    For $i = 1970 To $year - 1 Step +1
-        If _BoolLeapYear($i) = True Then
-            $LeepYears = $LeepYears + 1
-        Else
-            $NormalYears = $NormalYears + 1
-        EndIf
-    Next
-    Local $yearNum = (366 * $LeepYears * 24 * 3600) + (365 * $NormalYears * 24 * 3600)
-    Local $MonNum = 0
-    For $i = 1 To $mon - 1 Step +1
-        $MonNum = $MonNum + _LastDayInMonth($year, $i)
-    Next
-    Return $yearNum + ($MonNum * 24 * 3600) + (($days -  1 ) * 24 * 3600) + $hour * 3600 + $min * 60 + $sec
-EndFunc   ;==>GetUnixTimeStamp
+	If $year = 0 Then $year = Number(@YEAR)
+	If $mon = 0 Then $mon = Number(@MON)
+	If $days = 0 Then $days = Number(@MDAY)
+	If $hour = 0 Then $hour = Number(@HOUR)
+	If $min = 0 Then $min = Number(@MIN)
+	If $sec = 0 Then $sec = Number(@SEC)
+	Local $NormalYears = 0
+	Local $LeepYears = 0
+	For $i = 1970 To $year - 1 Step +1
+		If _BoolLeapYear($i) = True Then
+			$LeepYears = $LeepYears + 1
+		Else
+			$NormalYears = $NormalYears + 1
+		EndIf
+	Next
+	Local $yearNum = (366 * $LeepYears * 24 * 3600) + (365 * $NormalYears * 24 * 3600)
+	Local $MonNum = 0
+	For $i = 1 To $mon - 1 Step +1
+		$MonNum = $MonNum + _LastDayInMonth($year, $i)
+	Next
+	Return $yearNum + ($MonNum * 24 * 3600) + (($days - 1) * 24 * 3600) + $hour * 3600 + $min * 60 + $sec
+EndFunc   ;==>_GetUnixTimeStamp
 
 ;===============================================================================
 ;
@@ -117,12 +117,12 @@ EndFunc   ;==>GetUnixTimeStamp
 ;===============================================================================
 Func _UnixTimeStampToTime($UnixTimeStamp)
 	Dim $pTime[6]
-	$pTime[0] = Floor($UnixTimeStamp/31436000) + 1970 ; pTYear
+	$pTime[0] = Floor($UnixTimeStamp / 31436000) + 1970 ; pTYear
 
-	Local $pLeap = Floor(($pTime[0]-1969)/4)
-	Local $pDays =  Floor($UnixTimeStamp/86400)
+	Local $pLeap = Floor(($pTime[0] - 1969) / 4)
+	Local $pDays = Floor($UnixTimeStamp / 86400)
 	$pDays = $pDays - $pLeap
-	$pDaysSnEp = Mod($pDays,365)
+	$pDaysSnEp = Mod($pDays, 365)
 
 	$pTime[1] = 1 ;$pTMon
 	$pTime[2] = $pDaysSnEp ;$pTDays
@@ -130,9 +130,9 @@ Func _UnixTimeStampToTime($UnixTimeStamp)
 	If $pTime[2] > 59 And _BoolLeapYear($pTime[0]) = True Then $pTime[2] += 1
 
 	While 1
-		If($pTime[2] > 31) Then
-		$pTime[2] = $pTime[2] - _LastDayInMonth($pTime[1])
-		$pTime[1]  = $pTime[1] + 1
+		If ($pTime[2] > 31) Then
+			$pTime[2] = $pTime[2] - _LastDayInMonth($pTime[1])
+			$pTime[1] = $pTime[1] + 1
 		Else
 			ExitLoop
 		EndIf
@@ -140,12 +140,12 @@ Func _UnixTimeStampToTime($UnixTimeStamp)
 
 	Local $pSec = $UnixTimeStamp - ($pDays + $pLeap) * 86400
 
-	$pTime[3] = Floor($pSec/3600) ; $pTHour
-	$pTime[4] = Floor(($pSec - ($pTime[3] * 3600))/60) ;$pTmin
-	$pTime[5] = ($pSec -($pTime[3] * 3600)) - ($pTime[4] * 60) ; $pTSec
+	$pTime[3] = Floor($pSec / 3600) ; $pTHour
+	$pTime[4] = Floor(($pSec - ($pTime[3] * 3600)) / 60) ;$pTmin
+	$pTime[5] = ($pSec - ($pTime[3] * 3600)) - ($pTime[4] * 60) ; $pTSec
 
 	Return $pTime
-EndFunc ;==> UnixTimeStampToTime
+EndFunc   ;==>_UnixTimeStampToTime
 
 ;===============================================================================
 ;
@@ -158,16 +158,16 @@ EndFunc ;==> UnixTimeStampToTime
 ; Credits :         Wikipedia Leap Year
 ;===============================================================================
 Func _BoolLeapYear($year)
-    If Mod($year, 400) = 0 Then
-        Return True ;is_leap_year
-    ElseIf Mod($year, 100) = 0 Then
-        Return False ;is_not_leap_y
-    ElseIf Mod($year, 4) = 0 Then
-        Return True ;is_leap_year
-    Else
-        Return False ;is_not_leap_y
-    EndIf
-EndFunc   ;==>BoolLeapYear
+	If Mod($year, 400) = 0 Then
+		Return True ;is_leap_year
+	ElseIf Mod($year, 100) = 0 Then
+		Return False ;is_not_leap_y
+	ElseIf Mod($year, 4) = 0 Then
+		Return True ;is_leap_year
+	Else
+		Return False ;is_not_leap_y
+	EndIf
+EndFunc   ;==>_BoolLeapYear
 
 ;===============================================================================
 ;
@@ -183,27 +183,27 @@ EndFunc   ;==>BoolLeapYear
 ; User Calltip:
 ;===============================================================================
 Func _LastDayInMonth($year = @YEAR, $mon = @MON)
-    If Number($mon) = 2 Then
-        If _BoolLeapYear($year) = True Then
-            Return 29 ;is_leap_year
-        Else
-            Return 28 ;is_not_leap_y
-        EndIf
-    Else
-        If $mon < 8 Then
-    If Mod($mon, 2) = 0 Then
-        Return 30
-    Else
-        Return 31
-    EndIf
-Else
-    If Mod($mon, 2) = 1 Then
-        Return 30
-    Else
-        Return 31
-    EndIf
-EndIf
-    EndIf
+	If Number($mon) = 2 Then
+		If _BoolLeapYear($year) = True Then
+			Return 29 ;is_leap_year
+		Else
+			Return 28 ;is_not_leap_y
+		EndIf
+	Else
+		If $mon < 8 Then
+			If Mod($mon, 2) = 0 Then
+				Return 30
+			Else
+				Return 31
+			EndIf
+		Else
+			If Mod($mon, 2) = 1 Then
+				Return 30
+			Else
+				Return 31
+			EndIf
+		EndIf
+	EndIf
 EndFunc   ;==>_LastDayInMonth
 ;===============================================================================
 ; Function Name:    __StringProper
@@ -228,7 +228,7 @@ Func __StringProper($s_String)
 					$s_CurChar = StringUpper($s_CurChar)
 					$CapNext = 0
 				EndIf
-			Case Not StringRegExp($s_CurChar, '[a-zA-ZÀ-ÿšœžŸ]') AND $s_CurChar <> "'"
+			Case Not StringRegExp($s_CurChar, '[a-zA-ZÀ-ÿšœžŸ]') And $s_CurChar <> "'"
 				$CapNext = 1
 			Case Else
 				$s_CurChar = StringLower($s_CurChar)
@@ -236,7 +236,7 @@ Func __StringProper($s_String)
 		$s_nStr &= $s_CurChar
 	Next
 	Return $s_nStr
-EndFunc
+EndFunc   ;==>__StringProper
 ;===============================================================================
 ; Function Name:    _FileInUse()
 ; Description:      Checks if file is in use
@@ -252,36 +252,36 @@ EndFunc
 ; Date/Version:		10/15/2014  --  v1.0
 ;===============================================================================
 Func _FileInUse($sFilename, $iAccess = 0)
-    Local $aRet, $hFile, $iError, $iDA
-    Local Const $GENERIC_WRITE = 0x40000000
-    Local Const $GENERIC_READ = 0x80000000
-    Local Const $FILE_ATTRIBUTE_NORMAL = 0x80
-    Local Const $OPEN_EXISTING = 3
-    $iDA = $GENERIC_READ
-    If BitAND($iAccess, 1) <> 0 Then $iDA = BitOR($GENERIC_READ, $GENERIC_WRITE)
-    $aRet = DllCall("Kernel32.dll", "hwnd", "CreateFile", _
-                                    "str", $sFilename, _ ;lpFileName
-                                    "dword", $iDA, _ ;dwDesiredAccess
-                                    "dword", 0x00000000, _ ;dwShareMode = DO NOT SHARE
-                                    "dword", 0x00000000, _ ;lpSecurityAttributes = NULL
-                                    "dword", $OPEN_EXISTING, _ ;dwCreationDisposition = OPEN_EXISTING
-                                    "dword", $FILE_ATTRIBUTE_NORMAL, _ ;dwFlagsAndAttributes = FILE_ATTRIBUTE_NORMAL
-                                    "hwnd", 0) ;hTemplateFile = NULL
-    $iError = @error
-    If @error Or IsArray($aRet) = 0 Then Return SetError($iError, 0, -1)
-    $hFile = $aRet[0]
-    If $hFile = -1 Then ;INVALID_HANDLE_VALUE = -1
-        $aRet = DllCall("Kernel32.dll", "int", "GetLastError")
-        ;ERROR_SHARING_VIOLATION = 32 0x20
-        ;The process cannot access the file because it is being used by another process.
-        If @error Or IsArray($aRet) = 0 Then Return SetError($iError, 0, 1)
-        Return SetError($aRet[0], 0, 1)
-    Else
-        ;close file handle
-        DllCall("Kernel32.dll", "int", "CloseHandle", "hwnd", $hFile)
-        Return SetError(@error, 0, 0)
-    EndIf
-EndFunc
+	Local $aRet, $hFile, $iError, $iDA
+	Local Const $GENERIC_WRITE = 0x40000000
+	Local Const $GENERIC_READ = 0x80000000
+	Local Const $FILE_ATTRIBUTE_NORMAL = 0x80
+	Local Const $OPEN_EXISTING = 3
+	$iDA = $GENERIC_READ
+	If BitAND($iAccess, 1) <> 0 Then $iDA = BitOR($GENERIC_READ, $GENERIC_WRITE)
+	$aRet = DllCall("Kernel32.dll", "hwnd", "CreateFile", _
+			"str", $sFilename, _                         ;lpFileName
+			"dword", $iDA, _                         ;dwDesiredAccess
+			"dword", 0x00000000, _                         ;dwShareMode = DO NOT SHARE
+			"dword", 0x00000000, _                         ;lpSecurityAttributes = NULL
+			"dword", $OPEN_EXISTING, _                         ;dwCreationDisposition = OPEN_EXISTING
+			"dword", $FILE_ATTRIBUTE_NORMAL, _                         ;dwFlagsAndAttributes = FILE_ATTRIBUTE_NORMAL
+			"hwnd", 0)                         ;hTemplateFile = NULL
+	$iError = @error
+	If @error Or IsArray($aRet) = 0 Then Return SetError($iError, 0, -1)
+	$hFile = $aRet[0]
+	If $hFile = -1 Then ;INVALID_HANDLE_VALUE = -1
+		$aRet = DllCall("Kernel32.dll", "int", "GetLastError")
+		;ERROR_SHARING_VIOLATION = 32 0x20
+		;The process cannot access the file because it is being used by another process.
+		If @error Or IsArray($aRet) = 0 Then Return SetError($iError, 0, 1)
+		Return SetError($aRet[0], 0, 1)
+	Else
+		;close file handle
+		DllCall("Kernel32.dll", "int", "CloseHandle", "hwnd", $hFile)
+		Return SetError(@error, 0, 0)
+	EndIf
+EndFunc   ;==>_FileInUse
 ;===============================================================================
 ; Function Name:    _FileInUseWait
 ; Description:		Checkes to see if a file has open handles
@@ -292,22 +292,22 @@ EndFunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		10/15/2014  --  v1.0
 ;===============================================================================
-func _FileInUseWait($sFilePath, $Timeout=0, $Sleep=2000)
-	$Timeout=$Timeout*1000
-	$Time=TimerInit ( )
-	while 1
-		if _FileInUse($sFilePath) Then
+Func _FileInUseWait($sFilePath, $Timeout = 0, $Sleep = 2000)
+	$Timeout = $Timeout * 1000
+	$Time = TimerInit()
+	While 1
+		If _FileInUse($sFilePath) Then
 			_ConsoleWrite("  File locked")
 		Else
 			Return 1
-		endif
-		if $Timeout > 0 AND $Timeout < TimerDiff($Time) then
+		EndIf
+		If $Timeout > 0 And $Timeout < TimerDiff($Time) Then
 			_ConsoleWrite("  Timeout, file locked")
 			Return 0
-		endif
+		EndIf
 		Sleep($Sleep)
-	wend
-endfunc
+	WEnd
+EndFunc   ;==>_FileInUseWait
 ;===============================================================================
 ; Function Name:    _RunWait
 ; Description:		Improved version of RunWait that plays nice with my console logging
@@ -324,13 +324,13 @@ Func _RunWait($sProgram, $Working = "", $Show = @SW_HIDE, $Opt = $STDERR_MERGED,
 	$iPid = Run($sProgram, $Working, $Show, $Opt)
 	If @error Then
 		_ConsoleWrite("_RunWait: Couldn't Run " & $sProgram)
-		return SetError(1, 0, 0)
-	endif
+		Return SetError(1, 0, 0)
+	EndIf
 
 	$sData = _ProcessWaitClose($iPid, $Live)
 
-	return SetError(0, $iPid, $sData)
-endfunc
+	Return SetError(0, $iPid, $sData)
+EndFunc   ;==>_RunWait
 ;===============================================================================
 ; Function Name:    _ProcessWaitClose
 ; Description:		ProcessWaitClose that handles stdout from the running process
@@ -349,13 +349,13 @@ Func _ProcessWaitClose($iPid, $Live = False, $Diag = False)
 		$sStdRead = StdoutRead($iPid)
 		If @error Or $sStdRead = "" Then StderrRead($iPid)
 		If @error And Not ProcessExists($iPid) Then ExitLoop
-		$sStdRead = StringReplace($sStdRead, @CR&@LF&@CR&@LF, @CR&@LF)
+		$sStdRead = StringReplace($sStdRead, @CR & @LF & @CR & @LF, @CR & @LF)
 
 		If $Diag Then
 			$sStdRead = StringReplace($sStdRead, @CRLF, "@CRLF")
-			$sStdRead = StringReplace($sStdRead, @CR, "@CR"&@CR)
-			$sStdRead = StringReplace($sStdRead, @LF, "@LF"&@LF)
-			$sStdRead = StringReplace($sStdRead, "@CRLF", "@CRLF"&@CRLF)
+			$sStdRead = StringReplace($sStdRead, @CR, "@CR" & @CR)
+			$sStdRead = StringReplace($sStdRead, @LF, "@LF" & @LF)
+			$sStdRead = StringReplace($sStdRead, "@CRLF", "@CRLF" & @CRLF)
 		EndIf
 
 		If $sStdRead <> @CRLF Then
@@ -365,14 +365,14 @@ Func _ProcessWaitClose($iPid, $Live = False, $Diag = False)
 				;If StringRight($sStdRead, 1) = @CR Then $sStdRead = StringTrimRight($sStdRead, 1) ; This may never be needed, leaving disabled
 				If StringRight($sStdRead, 1) = @LF Then $sStdRead = StringTrimRight($sStdRead, 1)
 				_ConsoleWrite($sStdRead)
-			Endif
-		Endif
+			EndIf
+		EndIf
 
 		Sleep(5)
 	WEnd
 
-	return $sData
-endfunc
+	Return $sData
+EndFunc   ;==>_ProcessWaitClose
 ;===============================================================================
 ; Function Name:    _TreeList()
 ; Description:
@@ -383,23 +383,23 @@ endfunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		06/02/2011  --  v1.0
 ;===============================================================================
-Func _TreeList($path, $mode=1)
-	local $FileList_Original=_FileListToArray($path,"*",0)
-	local $FileList[1]
+Func _TreeList($path, $mode = 1)
+	Local $FileList_Original = _FileListToArray($path, "*", 0)
+	Local $FileList[1]
 
-	for $i=1 to ubound($FileList_Original)-1
-		local $file_path=$path&"\"&$FileList_Original[$i]
-		if StringInStr(FileGetAttrib($file_path),"D") then
-			$new_array=_TreeList($file_path,$mode)
-			_ArrayConcatenate($FileList,$new_array,1)
-		else
-			ReDim $FileList[UBound($FileList)+1]
-			$FileList[UBound($FileList)-1]=$file_path
-		endif
-	next
+	For $i = 1 To UBound($FileList_Original) - 1
+		Local $file_path = $path & "\" & $FileList_Original[$i]
+		If StringInStr(FileGetAttrib($file_path), "D") Then
+			$new_array = _TreeList($file_path, $mode)
+			_ArrayConcatenate($FileList, $new_array, 1)
+		Else
+			ReDim $FileList[UBound($FileList) + 1]
+			$FileList[UBound($FileList) - 1] = $file_path
+		EndIf
+	Next
 
-	return $FileList
-endfunc
+	Return $FileList
+EndFunc   ;==>_TreeList
 ;===============================================================================
 ; Function Name:    _StringStripWS()
 ; Description:		Strips all white chars, excluing char(32) the reglar space
@@ -411,8 +411,8 @@ endfunc
 ; Date/Version:		01/29/2010  --  v1.0
 ;===============================================================================
 Func _StringStripWS($String)
-	return StringRegExpReplace($String,"["&chr(0)&chr(9)&chr(10)&chr(11)&chr(12)&chr(13)&"]","")
-endfunc
+	Return StringRegExpReplace($String, "[" & Chr(0) & Chr(9) & Chr(10) & Chr(11) & Chr(12) & Chr(13) & "]", "")
+EndFunc   ;==>_StringStripWS
 ;===============================================================================
 ; Function Name:    _mousecheck()
 ; Description:		Checks for mouse movement
@@ -423,20 +423,20 @@ endfunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		01/29/2010  --  v1.0
 ;===============================================================================
-Func _MouseCheck($Sleep=300)
+Func _MouseCheck($Sleep = 300)
 	Local $MOUSECHECK_POS1, $MOUSECHECK_POS2
 
-	if $Sleep=0 then Global $MOUSECHECK_POS1
-	if isarray($MOUSECHECK_POS1)=0 And $Sleep=0 then $MOUSECHECK_POS1=MouseGetPos()
+	If $Sleep = 0 Then Global $MOUSECHECK_POS1
+	If IsArray($MOUSECHECK_POS1) = 0 And $Sleep = 0 Then $MOUSECHECK_POS1 = MouseGetPos()
 	Sleep($Sleep)
-	$MOUSECHECK_POS2=MouseGetPos()
-	If Abs($MOUSECHECK_POS1[0]-$MOUSECHECK_POS2[0])>2 Or Abs($MOUSECHECK_POS1[1]-$MOUSECHECK_POS2[1])>2 Then
-		if $Sleep=0 then $MOUSECHECK_POS1=$MOUSECHECK_POS2
+	$MOUSECHECK_POS2 = MouseGetPos()
+	If Abs($MOUSECHECK_POS1[0] - $MOUSECHECK_POS2[0]) > 2 Or Abs($MOUSECHECK_POS1[1] - $MOUSECHECK_POS2[1]) > 2 Then
+		If $Sleep = 0 Then $MOUSECHECK_POS1 = $MOUSECHECK_POS2
 		Return 1
-	endif
+	EndIf
 
 	Return 0
-EndFunc
+EndFunc   ;==>_MouseCheck
 ;===============================================================================
 ; Function Name:    _KeyValue()
 ; Description:		Work with 2d arrays treated as key value pairs such as the ones produced by INIReadSection()
@@ -469,7 +469,7 @@ Func _KeyValue(ByRef $aArray, $Key, $Value = Default, $Delete = Default)
 			If $Value = Default Then
 				Return $aArray[$i][1]
 
-			; Update existing value
+				; Update existing value
 			Else
 				$aArray[$i][1] = $Value
 				$aArray[0][0] = UBound($aArray) - 1
@@ -507,12 +507,12 @@ Func _KeyValue(ByRef $aArray, $Key, $Value = Default, $Delete = Default)
 		$aArray[0][0] = UBound($aArray) - 1
 
 		Return $Value
-	endif
+	EndIf
 
 	; Return error because a key doesn't exist and nothing else to do
 	SetError(1)
 	Return ""
-EndFunc ;==>_KeyValue
+EndFunc   ;==>_KeyValue
 ;===============================================================================
 ; Function Name:    _sini()
 ; Description:		Easily create or work with 2d arrays, such as the ones produced by INIReadSection()
@@ -535,53 +535,53 @@ EndFunc ;==>_KeyValue
 ;						E=e+Use the computers hardware key to encrypt/decrypt
 ; Example:			_sini($Settings,"trayicon","1","d")
 ;===============================================================================
-Func _sini(ByRef $Array,$Key,$Value=default,$Extended="")
-	Local $Alert=0
-	if $Value=default then $Alert=1
+Func _sini(ByRef $Array, $Key, $Value = Default, $Extended = "")
+	Local $Alert = 0
+	If $Value = Default Then $Alert = 1
 
-	If Not IsArray($array) Then Dim $array[1][2]
-	If stringinstr($Extended,"E",1) Then $Pass=DriveGetSerial(StringLeft(@WindowsDir,2))&@CPUArch&@OSBuild&$Key
-	If stringinstr($Extended,"e",1) Then $Pass="a1e2i3o4u5y6"&$Key
+	If Not IsArray($Array) Then Dim $Array[1][2]
+	If StringInStr($Extended, "E", 1) Then $Pass = DriveGetSerial(StringLeft(@WindowsDir, 2)) & @CPUArch & @OSBuild & $Key
+	If StringInStr($Extended, "e", 1) Then $Pass = "a1e2i3o4u5y6" & $Key
 
-	For $i=1 To UBound($Array)-1;Check for existing key
-		If $Array[$i][0]=$Key Then
-			If $Value=default OR stringinstr($Extended,"D",1) OR ($Value="" and stringinstr($Extended,"d")=0) Then ;Read Existing Value
-				If stringinstr($Extended,"e") Then
-					$decrypt=0;_StringEncrypt(0,$array[$i][1],$Pass,2)
-					If $decrypt=0 Then $decrypt=""
+	For $i = 1 To UBound($Array) - 1 ;Check for existing key
+		If $Array[$i][0] = $Key Then
+			If $Value = Default Or StringInStr($Extended, "D", 1) Or ($Value = "" And StringInStr($Extended, "d") = 0) Then ;Read Existing Value
+				If StringInStr($Extended, "e") Then
+					$decrypt = 0 ;_StringEncrypt(0,$array[$i][1],$Pass,2)
+					If $decrypt = 0 Then $decrypt = ""
 					Return $decrypt
 				Else
-					Return $array[$i][1]
+					Return $Array[$i][1]
 				EndIf
 			Else
-				If stringinstr($Extended,"e") Then				;Change Existing Value
-					$Array[$i][1]=0;_StringEncrypt(1,$Value,$Pass,2)
+				If StringInStr($Extended, "e") Then               ;Change Existing Value
+					$Array[$i][1] = 0 ;_StringEncrypt(1,$Value,$Pass,2)
 				Else
-					$Array[$i][1]=$Value
+					$Array[$i][1] = $Value
 				EndIf
-				$Array[0][0]=UBound($Array)-1
+				$Array[0][0] = UBound($Array) - 1
 				Return $Value
 			EndIf
 		EndIf
 	Next
 
-	if ($Value="" or $Value=default) and StringInStr($Extended,"D",1) then $Value=Eval("default_"&$Key)
+	If ($Value = "" Or $Value = Default) And StringInStr($Extended, "D", 1) Then $Value = Eval("default_" & $Key)
 
-	if $Value=default then
-		MsgBox(48,"Error In "&@ScriptName,"Missing Value For Setting """&$Key&""""&@CRLF&"Press Ok To Continue")
-	else
+	If $Value = Default Then
+		MsgBox(48, "Error In " & @ScriptName, "Missing Value For Setting """ & $Key & """" & @CRLF & "Press Ok To Continue")
+	Else
 		$iUBound = UBound($Array)
 		ReDim $Array[$iUBound + 1][2]
-		$Array[$iUBound][0]=$Key
-		$Array[$iUBound][1]=$Value
-		if stringinstr($Extended,"e") then $Array[$iUBound][1]=0;_StringEncrypt(1,$Value,$Pass,2)
-		$Array[0][0]=UBound($Array)-1
-		return $Value
-	endif
+		$Array[$iUBound][0] = $Key
+		$Array[$iUBound][1] = $Value
+		If StringInStr($Extended, "e") Then $Array[$iUBound][1] = 0 ;_StringEncrypt(1,$Value,$Pass,2)
+		$Array[0][0] = UBound($Array) - 1
+		Return $Value
+	EndIf
 
 	SetError(1)
-	return ""
-EndFunc ;==>_sini
+	Return ""
+EndFunc   ;==>_sini
 ;===============================================================================
 ; Function Name:   	_ConsoleWrite()
 ; Description:		Console & File Loging
@@ -601,48 +601,48 @@ EndFunc ;==>_sini
 Func _ConsoleWrite($sMessage, $iLevel = 1, $iSameLine = 0)
 	Local $hHandle, $sData
 
-	if Eval("LogFilePath") = "" Then Global $LogFilePath = StringTrimRight(@ScriptFullPath,4)&"_Log.txt"
-	if Eval("LogFileMaxSize") = "" Then Global $LogFileMaxSize = 0
-	if Eval("LogToFile") = "" Then Global $LogToFile = False
-	if StringInStr($CmdLineRaw, "-debuglog") Then Global $LogToFile = True
-	if Eval("LogLevel") = "" Then Global $LogLevel = 3 ; The level of message to log - If no level set to 3
+	If Eval("LogFilePath") = "" Then Global $LogFilePath = StringTrimRight(@ScriptFullPath, 4) & "_Log.txt"
+	If Eval("LogFileMaxSize") = "" Then Global $LogFileMaxSize = 0
+	If Eval("LogToFile") = "" Then Global $LogToFile = False
+	If StringInStr($CmdLineRaw, "-debuglog") Then Global $LogToFile = True
+	If Eval("LogLevel") = "" Then Global $LogLevel = 3 ; The level of message to log - If no level set to 3
 
 	If $sMessage == "OPENLOG" Then Return ShellExecute($LogFilePath)
 
-	If $iLevel<=$LogLevel then
-		$sMessage=StringReplace($sMessage,@CRLF&@CRLF,@CRLF) ;Remove Double CR
-		If StringRight($sMessage,StringLen(@CRLF))=@CRLF Then $sMessage=StringTrimRight($sMessage,StringLen(@CRLF)) ; Remove last CR
+	If $iLevel <= $LogLevel Then
+		$sMessage = StringReplace($sMessage, @CRLF & @CRLF, @CRLF) ;Remove Double CR
+		If StringRight($sMessage, StringLen(@CRLF)) = @CRLF Then $sMessage = StringTrimRight($sMessage, StringLen(@CRLF)) ; Remove last CR
 
 		; Generate Timestamp
-		Local $sTime=@YEAR&"-"&@MON&"-"&@MDAY&" "&@HOUR&":"&@MIN&":"&@SEC&"> "
+		Local $sTime = @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "> "
 
 		; Force CRLF
 		$sMessage = StringRegExpReplace($sMessage, "((?<!\x0d)\x0a|\x0d(?!\x0a))", @CRLF)
 
 		; Adds spaces for alignment after initial line
-		$sMessage=StringReplace($sMessage,@CRLF,@CRLF&_StringRepeat(" ",StringLen($sTime)))
+		$sMessage = StringReplace($sMessage, @CRLF, @CRLF & _StringRepeat(" ", StringLen($sTime)))
 
-		If $iSameLine=0 then $sMessage=@CRLF&$sTime&$sMessage
-		If $iSameLine=2 then $sMessage=@CR&$sTime&$sMessage
+		If $iSameLine = 0 Then $sMessage = @CRLF & $sTime & $sMessage
+		If $iSameLine = 2 Then $sMessage = @CR & $sTime & $sMessage
 
 		ConsoleWrite($sMessage)
 
 		If $LogToFile Then
-			if $LogFileMaxSize<>0 AND FileGetSize($LogFilePath) > $LogFileMaxSize*1024 then
-				$sMessage=FileRead($LogFilePath) & $sMessage
-				$sMessage=StringTrimLeft($sMessage,StringInStr($sMessage, @CRLF, 0, 5))
-				$hHandle=FileOpen($LogFilePath,2)
+			If $LogFileMaxSize <> 0 And FileGetSize($LogFilePath) > $LogFileMaxSize * 1024 Then
+				$sMessage = FileRead($LogFilePath) & $sMessage
+				$sMessage = StringTrimLeft($sMessage, StringInStr($sMessage, @CRLF, 0, 5))
+				$hHandle = FileOpen($LogFilePath, 2)
 			Else
-				$hHandle=FileOpen($LogFilePath,1)
-			endif
-			FileWrite($hHandle,$sMessage)
+				$hHandle = FileOpen($LogFilePath, 1)
+			EndIf
+			FileWrite($hHandle, $sMessage)
 			FileClose($hHandle)
 
-		endif
-	endif
+		EndIf
+	EndIf
 
 	Return $sMessage
-EndFunc ;==> _ConsoleWrite
+EndFunc   ;==>_ConsoleWrite
 ;===============================================================================
 ; Function Name:    _ntime()
 ; Description:		Returns time since 0 unlike the unknown timestamp behavior of timer_init
@@ -654,20 +654,20 @@ EndFunc ;==> _ConsoleWrite
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		01/29/2010  --  v1.0
 ;===============================================================================
-Func _ntime($Flag=0)
+Func _ntime($Flag = 0)
 	Local $Time
 
-	$Time=@YEAR*365*24*60*60*1000
-	$Time=$Time+@YDAY*24*60*60*1000
-	$Time=$Time+@HOUR*60*60*1000
-	$Time=$Time+@MIN*60*1000
-	$Time=$Time+@SEC*1000
-	$Time=$Time+@MSEC
+	$Time = @YEAR * 365 * 24 * 60 * 60 * 1000
+	$Time = $Time + @YDAY * 24 * 60 * 60 * 1000
+	$Time = $Time + @HOUR * 60 * 60 * 1000
+	$Time = $Time + @MIN * 60 * 1000
+	$Time = $Time + @SEC * 1000
+	$Time = $Time + @MSEC
 
-	If $Flag=1 Then Return Int($Time/1000) ;Return Seconds
-	If $Flag=2 Then Return Int($Time/1000/60) ;Return Minutes
+	If $Flag = 1 Then Return Int($Time / 1000) ;Return Seconds
+	If $Flag = 2 Then Return Int($Time / 1000 / 60) ;Return Minutes
 	Return Int($Time) ;Return Miliseconds
-EndFunc
+EndFunc   ;==>_ntime
 ;===============================================================================
 ; Function Name:    _proc_waitnew()
 ; Description:		Wait for a new proccess to be created before continuing
@@ -679,21 +679,21 @@ EndFunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		01/29/2010  --  v1.0
 ;===============================================================================
-Func _proc_waitnew($Process,$Timeout=0)
-	Local $Count1=_proc_count(), $Count2
-	Local $StartTime=_ntime()
+Func _proc_waitnew($Process, $Timeout = 0)
+	Local $Count1 = _proc_count(), $Count2
+	Local $StartTime = _ntime()
 
 	While 1
-		$Count2=_proc_count()
-		if $Count2>$Count1 then return 1
-		if $Count2<$Count1 then $Count1=$Count2
+		$Count2 = _proc_count()
+		If $Count2 > $Count1 Then Return 1
+		If $Count2 < $Count1 Then $Count1 = $Count2
 
-		If $Timeout>0 And $StartTime<_ntime()-$Timeout Then ExitLoop
+		If $Timeout > 0 And $StartTime < _ntime() - $Timeout Then ExitLoop
 		Sleep(100)
 	WEnd
 
 	Return 0
-EndFunc
+EndFunc   ;==>_proc_waitnew
 ;===============================================================================
 ; Function Name:    _proc_count()
 ; Description:		Returns the number of processes with the same name
@@ -704,18 +704,18 @@ EndFunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		01/29/2010  --  v1.0
 ;===============================================================================
-Func _proc_count($Process=@AutoItPID,$OnlyUser="")
-	Local $Count=0, $Array=ProcessList($Process)
+Func _proc_count($Process = @AutoItPID, $OnlyUser = "")
+	Local $Count = 0, $Array = ProcessList($Process)
 
-	for $i=1 To $Array[0][0]
-		if $Array[$i][1]=$Process then
-			if $OnlyUser<>"" And $OnlyUser<>_ProcessOwner($Array[$i][1]) then ContinueLoop
-			$Count=$Count+1
-		endif
+	For $i = 1 To $Array[0][0]
+		If $Array[$i][1] = $Process Then
+			If $OnlyUser <> "" And $OnlyUser <> _ProcessOwner($Array[$i][1]) Then ContinueLoop
+			$Count = $Count + 1
+		EndIf
 	Next
 
 	Return $Count
-EndFunc
+EndFunc   ;==>_proc_count
 ;===============================================================================
 ; Function Name:    _ProcessOwner()
 ; Description:		Gets username of the owner of a PID
@@ -727,7 +727,7 @@ EndFunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		01/29/2010  --  v1.0
 ;===============================================================================
-Func _ProcessOwner($PID,$Hostname=".")
+Func _ProcessOwner($PID, $Hostname = ".")
 	Local $User, $objWMIService, $colProcess, $objProcess
 
 	$objWMIService = ObjGet("winmgmts://" & $Hostname & "/root/cimv2")
@@ -740,7 +740,7 @@ Func _ProcessOwner($PID,$Hostname=".")
 			Return $User
 		EndIf
 	Next
-EndFunc
+EndFunc   ;==>_ProcessOwner
 ;===============================================================================
 ; Function Name:    _ProcessCloseOthers()
 ; Description:		Closes other proccess of the same name
@@ -752,21 +752,21 @@ EndFunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		01/29/2010  --  v1.0
 ;===============================================================================
-func _ProcessCloseOthers($Process=@ScriptName,$ExcludingUser="",$OnlyUser="")
-	Local $Array=ProcessList($Process)
+Func _ProcessCloseOthers($Process = @ScriptName, $ExcludingUser = "", $OnlyUser = "")
+	Local $Array = ProcessList($Process)
 
-	for $i=1 To $Array[0][0]
-		if ($Array[$i][1]<>@AutoItPID) then
-			if $ExcludingUser<>"" AND _ProcessOwner($Array[$i][1])<>$ExcludingUser then
+	For $i = 1 To $Array[0][0]
+		If ($Array[$i][1] <> @AutoItPID) Then
+			If $ExcludingUser <> "" And _ProcessOwner($Array[$i][1]) <> $ExcludingUser Then
 				ProcessClose($Array[$i][1])
-			elseif $OnlyUser<>"" and _ProcessOwner($Array[$i][1])=$OnlyUser then
+			ElseIf $OnlyUser <> "" And _ProcessOwner($Array[$i][1]) = $OnlyUser Then
 				ProcessClose($Array[$i][1])
-			elseif $OnlyUser="" AND $ExcludingUser="" then
+			ElseIf $OnlyUser = "" And $ExcludingUser = "" Then
 				ProcessClose($Array[$i][1])
-			endif
-		endif
+			EndIf
+		EndIf
 	Next
-endfunc
+EndFunc   ;==>_ProcessCloseOthers
 ;===============================================================================
 ; Function Name:    _OnlyInstance()
 ; Description:		Checks to see if we are the only instance running
@@ -785,29 +785,29 @@ endfunc
 Func _OnlyInstance($iFlag)
 	Local $ERROR_ALREADY_EXISTS = 183, $Handle, $LastError, $Message
 
-	if @Compiled=0 then return 0
+	If @Compiled = 0 Then Return 0
 
 	$Handle = DllCall("kernel32.dll", "int", "CreateMutex", "int", 0, "long", 1, "str", @ScriptName)
 	$LastError = DllCall("kernel32.dll", "int", "GetLastError")
 	If $LastError[0] = $ERROR_ALREADY_EXISTS Then
 		SetError($LastError[0], $LastError[0], 0)
 		Switch $iFlag
-			case 0
-				return 1
-			case 1
+			Case 0
+				Return 1
+			Case 1
 				ProcessClose(@AutoItPID)
-			case 2
-				MsgBox(262144+48,@ScriptName,"The Program Is Already Running")
+			Case 2
+				MsgBox(262144 + 48, @ScriptName, "The Program Is Already Running")
 				ProcessClose(@AutoItPID)
-			case 3
-				if MsgBox(262144+256+48+4,@ScriptName, "The Program ("&@ScriptName&") Is Already Running, Continue Anyway?")=7 then ProcessClose(@AutoItPID)
-			case 4
+			Case 3
+				If MsgBox(262144 + 256 + 48 + 4, @ScriptName, "The Program (" & @ScriptName & ") Is Already Running, Continue Anyway?") = 7 Then ProcessClose(@AutoItPID)
+			Case 4
 				_ProcessCloseOthers()
 		EndSwitch
-		return 1
+		Return 1
 	EndIf
-	return 0
-endfunc
+	Return 0
+EndFunc   ;==>_OnlyInstance
 ;===============================================================================
 ; Function Name:    _MsgBox()
 ; Description:		Displays a msgbox without haulting script by using /AutoIt3ExecuteLine
@@ -818,11 +818,11 @@ endfunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		01/29/2010  --  v1.1
 ;===============================================================================
-Func _MsgBox($Flag,$Title,$Text,$Timeout=0)
-	if $Title="" then $Title=@ScriptName
-	if $Flag="" or IsInt($Flag)=0 then $Flag=0
-	return Run('"'&@AutoItExe&'"' & ' /AutoIt3ExecuteLine "msgbox('&$Flag&','''&$Title&''','''&$Text&''','''&$Timeout&''')"')
-EndFunc
+Func _MsgBox($Flag, $Title, $Text, $Timeout = 0)
+	If $Title = "" Then $Title = @ScriptName
+	If $Flag = "" Or IsInt($Flag) = 0 Then $Flag = 0
+	Return Run('"' & @AutoItExe & '"' & ' /AutoIt3ExecuteLine "msgbox(' & $Flag & ',''' & $Title & ''',''' & $Text & ''',''' & $Timeout & ''')"')
+EndFunc   ;==>_MsgBox
 ;===============================================================================
 ; Function Name:    _drive_find()
 ; Description:		Find a drives letter based on the drives serial
@@ -835,12 +835,12 @@ EndFunc
 ;===============================================================================
 Func _drive_find($Serial)
 	Local $Drivelist
-	$Drivelist=StringSplit("c:,d:,e:,f:,g:,h:,i:,j:,k:,l:,m:,n:,o:,p:,q:,r:,s:,t:,u:,v:,w:,x:,y:,z:",",")
-	for $i=1 to $Drivelist[0]
-		If (DriveGetSerial($Drivelist[$i])=$Serial AND DriveStatus($Drivelist[$i]) = "READY") then return $Drivelist[$i]
-	next
-	return 0
-endfunc
+	$Drivelist = StringSplit("c:,d:,e:,f:,g:,h:,i:,j:,k:,l:,m:,n:,o:,p:,q:,r:,s:,t:,u:,v:,w:,x:,y:,z:", ",")
+	For $i = 1 To $Drivelist[0]
+		If (DriveGetSerial($Drivelist[$i]) = $Serial And DriveStatus($Drivelist[$i]) = "READY") Then Return $Drivelist[$i]
+	Next
+	Return 0
+EndFunc   ;==>_drive_find
 
 ;===============================================================================
 ; Function Name:    _Speak()
@@ -853,19 +853,19 @@ endfunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		01/29/2010  --  v1.0
 ;===============================================================================
-func _Speak($Text,$Speed=-3,$File="")
+Func _Speak($Text, $Speed = -3, $File = "")
 	Local $ObjVoice, $ObjFile
 
-	$ObjVoice=ObjCreate("Sapi.SpVoice")
-    if $File<>"" then
-		$ObjFile=ObjCreate("SAPI.SpFileStream.1")
-		$objFile.Open($File,3)
-		$objVoice.AudioOutputStream = $objFile
-	endif
-    $objVoice.Speak ('<rate speed="'&$Speed&'">'&$Text&'</rate>', 8)
+	$ObjVoice = ObjCreate("Sapi.SpVoice")
+	If $File <> "" Then
+		$ObjFile = ObjCreate("SAPI.SpFileStream.1")
+		$ObjFile.Open($File, 3)
+		$ObjVoice.AudioOutputStream = $ObjFile
+	EndIf
+	$ObjVoice.Speak('<rate speed="' & $Speed & '">' & $Text & '</rate>', 8)
 
-	return 1
-endfunc
+	Return 1
+EndFunc   ;==>_Speak
 ;===============================================================================
 ; Function Name:    _Sleep()
 ; Description:		Simple modification to sleep to allow for adlib functions to run
@@ -875,12 +875,12 @@ endfunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		10/15/2014  --  v1.0
 ;===============================================================================
-func _Sleep($iTime)
-	$iTime=Round($iTime/10)
-	For $i=1 to $iTime
-		sleep(10)
-	next
-Endfunc
+Func _Sleep($iTime)
+	$iTime = Round($iTime / 10)
+	For $i = 1 To $iTime
+		Sleep(10)
+	Next
+EndFunc   ;==>_Sleep
 ;===============================================================================
 ; Function Name:    _IsInternet()
 ; Description:		Gets internet connection state as determined by Windows
@@ -891,17 +891,17 @@ Endfunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		10/15/2014  --  v1.0
 ;===============================================================================
-func _IsInternet()
-	local $Ret = DllCall("wininet.dll", 'int', 'InternetGetConnectedState', 'dword*', 0x20, 'dword', 0)
+Func _IsInternet()
+	Local $Ret = DllCall("wininet.dll", 'int', 'InternetGetConnectedState', 'dword*', 0x20, 'dword', 0)
 
-	if (@error) then
-		return SetError(1, 0, 0)
-	endif
+	If (@error) Then
+		Return SetError(1, 0, 0)
+	EndIf
 
-	local $wError = _WinAPI_GetLastError()
+	Local $wError = _WinAPI_GetLastError()
 
-	return SetError((not ($wError = 0)), $wError, $Ret[0])
-endfunc
+	Return SetError((Not ($wError = 0)), $wError, $Ret[0])
+EndFunc   ;==>_IsInternet
 ;===============================================================================
 ; Function Name:    _ImageWait()
 ; Description:		Use image search to wait for an image to apear on the screen
@@ -912,20 +912,20 @@ endfunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		10/15/2014  --  v1.1
 ;===============================================================================
-func _ImageWait($FindImage,$hWnd=Default,$iTolerance=Default,$iTimeout=Default,$x1=Default,$y1=Default,$x2=Default,$y2=Default)
-	$timer=Timerinit()
-	while 1
-		$Return=_ImageSearch($FindImage,$hWnd,$iTolerance,Default,$x1,$y1,$x2,$y2)
-		if not @error then return $Return
+Func _ImageWait($FindImage, $hWnd = Default, $iTolerance = Default, $iTimeout = Default, $x1 = Default, $y1 = Default, $x2 = Default, $y2 = Default)
+	$timer = TimerInit()
+	While 1
+		$Return = _ImageSearch($FindImage, $hWnd, $iTolerance, Default, $x1, $y1, $x2, $y2)
+		If Not @error Then Return $Return
 
-		if $iTimeout > 0 AND TimerDiff($timer) > $iTimeout then
+		If $iTimeout > 0 And TimerDiff($timer) > $iTimeout Then
 			SetError(1)
 			Return 0
-		endif
+		EndIf
 
-		_sleep(500)
-	wend
-endfunc
+		_Sleep(500)
+	WEnd
+EndFunc   ;==>_ImageWait
 ;===============================================================================
 ; Function Name:    _ImageSearch()
 ; Description:		Searches the chosen area of the screen for an image based on the selected image file
@@ -957,64 +957,64 @@ endfunc
 ;					JohnMC - JohnsCS.com
 ; Date/Version:		11/20/2012  --  v1.1
 ;===============================================================================
-Func _ImageSearch($FindImage,$hWnd="",$Tolerance=0,$Draw=0,$x1=0,$y1=0,$x2=@DesktopWidth,$y2=@DesktopHeight)
-	Local $Default_Dll="_ImageSearchDLL.dll", $aCoords[6]
+Func _ImageSearch($FindImage, $hWnd = "", $Tolerance = 0, $Draw = 0, $x1 = 0, $y1 = 0, $x2 = @DesktopWidth, $y2 = @DesktopHeight)
+	Local $Default_Dll = "_ImageSearchDLL.dll", $aCoords[6]
 
 	If $hWnd <> "" Then
-		$wpos=WinGetPos($hWnd)
-		$x1=$wpos[0]
-		$y1=$wpos[1]
-		$x2=$wpos[0]+$wpos[2]
-		$y2=$wpos[1]+$wpos[3]
+		$wpos = WinGetPos($hWnd)
+		$x1 = $wpos[0]
+		$y1 = $wpos[1]
+		$x2 = $wpos[0] + $wpos[2]
+		$y2 = $wpos[1] + $wpos[3]
 	EndIf
 
-	if $Draw=1 then _DrawBox($x1,$y1,$x2,$y2)
+	If $Draw = 1 Then _DrawBox($x1, $y1, $x2, $y2)
 
-    if Not FileExists($FindImage) then
-		return seterror(3,0,$aCoords)
-	endif
+	If Not FileExists($FindImage) Then
+		Return SetError(3, 0, $aCoords)
+	EndIf
 
 	If Not IsDeclared("ImageSearch_hDll") Then
-        Global $ImageSearch_hDll=DllOpen($Default_Dll)
-    EndIf
-
-	if $FindImage="close" then
-		DllClose($ImageSearch_hDll)
-		return
+		Global $ImageSearch_hDll = DllOpen($Default_Dll)
 	EndIf
 
-	if $tolerance > 0 then $FindImage = "*" & $tolerance & " " & $FindImage
+	If $FindImage = "close" Then
+		DllClose($ImageSearch_hDll)
+		Return
+	EndIf
 
-	Local $aReturn = DllCall($ImageSearch_hDll,"str","ImageSearch","int",$x1,"int",$y1,"int",$x2,"int",$y2,"str",$FindImage)
+	If $Tolerance > 0 Then $FindImage = "*" & $Tolerance & " " & $FindImage
 
-    if @error then
-		return seterror(2,0,$aCoords)
-	elseif $aReturn[0]="0" then
-		return seterror(1,0,$aCoords)
-	endif
+	Local $aReturn = DllCall($ImageSearch_hDll, "str", "ImageSearch", "int", $x1, "int", $y1, "int", $x2, "int", $y2, "str", $FindImage)
 
-	$aCoords = StringSplit(StringTrimLeft($aReturn[0],2),"|",2) ;Recycle $aReturn
+	If @error Then
+		Return SetError(2, 0, $aCoords)
+	ElseIf $aReturn[0] = "0" Then
+		Return SetError(1, 0, $aCoords)
+	EndIf
 
-	if AutoItSetOption("PixelCoordMode")=0 then ;Consideration for coords relative to window
-		local $aWinPos = WinGetPos($hWnd)
-		$aCoords[0]=$aCoords[0]-$aWinPos[0]
-		$aCoords[1]=$aCoords[1]-$aWinPos[1]
-	elseif AutoItSetOption("PixelCoordMode")=2 then ;Consideration for coords relative to client area of active window
-		if $hWnd="" then $hWnd=WinGetHandle("")
+	$aCoords = StringSplit(StringTrimLeft($aReturn[0], 2), "|", 2) ;Recycle $aReturn
+
+	If AutoItSetOption("PixelCoordMode") = 0 Then ;Consideration for coords relative to window
+		Local $aWinPos = WinGetPos($hWnd)
+		$aCoords[0] = $aCoords[0] - $aWinPos[0]
+		$aCoords[1] = $aCoords[1] - $aWinPos[1]
+	ElseIf AutoItSetOption("PixelCoordMode") = 2 Then ;Consideration for coords relative to client area of active window
+		If $hWnd = "" Then $hWnd = WinGetHandle("")
 		Local $tpoint = DllStructCreate("int X;int Y")
 		DllStructSetData($tpoint, "X", 0)
 		DllStructSetData($tpoint, "Y", 0)
-		DllCall("user32.dll", "bool", "ClientToScreen", "hwnd", $hWnd, "struct*", $tPoint)
-		$aCoords[0]=$aCoords[0]-DllStructGetData($tpoint, "X")
-		$aCoords[1]=$aCoords[1]-DllStructGetData($tpoint, "Y")
-	endif
+		DllCall("user32.dll", "bool", "ClientToScreen", "hwnd", $hWnd, "struct*", $tpoint)
+		$aCoords[0] = $aCoords[0] - DllStructGetData($tpoint, "X")
+		$aCoords[1] = $aCoords[1] - DllStructGetData($tpoint, "Y")
+	EndIf
 
 	ReDim $aCoords[6]
-	$aCoords[4]=Int($aCoords[0]+($aCoords[2]/2));Center X
-	$aCoords[5]=Int($aCoords[1]+($aCoords[3]/2));Center Y
+	$aCoords[4] = Int($aCoords[0] + ($aCoords[2] / 2)) ;Center X
+	$aCoords[5] = Int($aCoords[1] + ($aCoords[3] / 2)) ;Center Y
 
-	return $aCoords
-EndFunc
+	Return $aCoords
+EndFunc   ;==>_ImageSearch
 ;===============================================================================
 ; Function Name:    _DrawBox()
 ; Description:		Draws a line (box) on the screen using the coorinates provided
@@ -1029,22 +1029,22 @@ EndFunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		11/20/2012  --  v1.1
 ;===============================================================================
-Func _DrawBox($x1,$y1,$x2,$y2,$Color=0x00FF00)
-    Local $aDC = DllCall ("user32.dll", "int", "GetDC", "hwnd", "")
-    Local $hDll = DllOpen ("gdi32.dll")
+Func _DrawBox($x1, $y1, $x2, $y2, $Color = 0x00FF00)
+	Local $aDC = DllCall("user32.dll", "int", "GetDC", "hwnd", "")
+	Local $hDll = DllOpen("gdi32.dll")
 
-	For $i=$x1 To $y2
-		DllCall ($hDll, "long", "SetPixel", "long", $aDC[0], "long", $i, "long", $y1, "long", $Color)
-		DllCall ($hDll, "long", "SetPixel", "long", $aDC[0], "long", $i, "long", $y2, "long", $Color)
+	For $i = $x1 To $y2
+		DllCall($hDll, "long", "SetPixel", "long", $aDC[0], "long", $i, "long", $y1, "long", $Color)
+		DllCall($hDll, "long", "SetPixel", "long", $aDC[0], "long", $i, "long", $y2, "long", $Color)
 	Next
 
-	For $i=$x1 To $y2
-		DllCall ($hDll, "long", "SetPixel", "long", $aDC[0], "long", $x1, "long", $i, "long", $Color)
-		DllCall ($hDll, "long", "SetPixel", "long", $aDC[0], "long", $x2, "long", $i, "long", $Color)
+	For $i = $x1 To $y2
+		DllCall($hDll, "long", "SetPixel", "long", $aDC[0], "long", $x1, "long", $i, "long", $Color)
+		DllCall($hDll, "long", "SetPixel", "long", $aDC[0], "long", $x2, "long", $i, "long", $Color)
 	Next
 
 	DllClose($hDll)
-EndFunc
+EndFunc   ;==>_DrawBox
 ;===============================================================================
 ; Function Name:    _WinGetClientPos
 ; Description:		Retrieves the position and size of the client area of given window
@@ -1064,9 +1064,9 @@ Func _WinGetClientPos($hWnd, $Absolute = 1)
 	Local $aPos[4], $aSize[4], $aWinPos[4]
 
 	Local $tpoint = DllStructCreate("int X;int Y")
-    DllStructSetData($tpoint, "X", 0)
-    DllStructSetData($tpoint, "Y", 0)
-	DllCall("user32.dll", "bool", "ClientToScreen", "hwnd", $hWnd, "struct*", $tPoint)
+	DllStructSetData($tpoint, "X", 0)
+	DllStructSetData($tpoint, "Y", 0)
+	DllCall("user32.dll", "bool", "ClientToScreen", "hwnd", $hWnd, "struct*", $tpoint)
 
 	$aSize = WinGetClientSize($hWnd)
 
@@ -1075,14 +1075,14 @@ Func _WinGetClientPos($hWnd, $Absolute = 1)
 	$aPos[2] = $aSize[0]
 	$aPos[3] = $aSize[1]
 
-	if $Absolute = 0 then
+	If $Absolute = 0 Then
 		$aWinPos = WinGetPos($hWnd)
 		$aPos[0] = $aPos[0] - $aWinPos[0]
 		$aPos[1] = $aPos[1] - $aWinPos[1]
 	EndIf
 
-    Return $aPos
-EndFunc
+	Return $aPos
+EndFunc   ;==>_WinGetClientPos
 ;===============================================================================
 ; Function Name:    _WinMoveClient
 ; Description:		Retrieves the position and size of the client area of given window
@@ -1095,16 +1095,16 @@ EndFunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		10/15/2014  --  v1.0
 ;===============================================================================
-Func _WinMoveClient($sTitle,$sText,$X,$Y,$Width=default,$Height=default,$Speed=default)
+Func _WinMoveClient($sTitle, $sText, $X, $Y, $Width = Default, $Height = Default, $Speed = Default)
 
-	Local $WinPos=WinGetPos($sTitle,$sText)
-	Local $ClientSize=WinGetClientSize($sTitle,$sText)
+	Local $WinPos = WinGetPos($sTitle, $sText)
+	Local $ClientSize = WinGetClientSize($sTitle, $sText)
 
-	if $Width<>default then $Width=$Width+$WinPos[2]-$ClientSize[0]
-	if $Height<>default then $Height=$Height+$WinPos[3]-$ClientSize[1]
+	If $Width <> Default Then $Width = $Width + $WinPos[2] - $ClientSize[0]
+	If $Height <> Default Then $Height = $Height + $WinPos[3] - $ClientSize[1]
 
-	Return WinMove($sTitle,$sText,$X,$Y,$Width,$Height,$Speed)
-endfunc
+	Return WinMove($sTitle, $sText, $X, $Y, $Width, $Height, $Speed)
+EndFunc   ;==>_WinMoveClient
 ;=============================================================================================
 ; Name:				 _HighPrecisionSleep()
 ; Description:		Sleeps down to 0.1 microseconds
@@ -1115,18 +1115,18 @@ endfunc
 ; Author:			Andreas Karlsson (monoceres)
 ; Remarks:			Even though this has high precision you need to take into consideration that it will take some time for autoit to call the function.
 ;=============================================================================================
-Func _HighPrecisionSleep($iMicroSeconds,$dll="")
-    Local $hStruct, $bLoaded
-	If $dll<>"" Then $HPS_hDll=$dll
-    If Not IsDeclared("HPS_hDll") Then
-        Global $HPS_hDll
-		$HPS_hDll=DllOpen("ntdll.dll")
-        $bLoaded=True
-    EndIf
-    $hStruct=DllStructCreate("int64 time;")
-    DllStructSetData($hStruct,"time",-1*($iMicroSeconds*10))
-    DllCall($HPS_hDll,"dword","ZwDelayExecution","int",0,"ptr",DllStructGetPtr($hStruct))
-EndFunc
+Func _HighPrecisionSleep($iMicroSeconds, $dll = "")
+	Local $hStruct, $bLoaded
+	If $dll <> "" Then $HPS_hDll = $dll
+	If Not IsDeclared("HPS_hDll") Then
+		Global $HPS_hDll
+		$HPS_hDll = DllOpen("ntdll.dll")
+		$bLoaded = True
+	EndIf
+	$hStruct = DllStructCreate("int64 time;")
+	DllStructSetData($hStruct, "time", -1 * ($iMicroSeconds * 10))
+	DllCall($HPS_hDll, "dword", "ZwDelayExecution", "int", 0, "ptr", DllStructGetPtr($hStruct))
+EndFunc   ;==>_HighPrecisionSleep
 ;===============================================================================
 ; Function:		_ProcessGetWin
 ; Purpose:		Return information on the Window owned by a process (if any)
@@ -1141,18 +1141,18 @@ EndFunc
 ;   			to see if a window existed for the process.
 ; Author:		PsaltyDS at www.autoitscript.com/forum
 ;===============================================================================
-Func _ProcessGetWin($iPID)
-    Local $avWinList = WinList(), $avRET[2]
-    For $n = 1 To $avWinList[0][0]
-        If WinGetProcess($avWinList[$n][1]) = $iPID Then
-            $avRET[0] = $avWinList[$n][0] ; Title
-            $avRET[1] = $avWinList[$n][1] ; HWND
-            ExitLoop
-        EndIf
-    Next
-    If $avRET[1] = "" Then SetError(1)
-    Return $avRET
-EndFunc
+Func _ProcessGetWin($iPid)
+	Local $avWinList = WinList(), $avRET[2]
+	For $n = 1 To $avWinList[0][0]
+		If WinGetProcess($avWinList[$n][1]) = $iPid Then
+			$avRET[0] = $avWinList[$n][0] ; Title
+			$avRET[1] = $avWinList[$n][1] ; HWND
+			ExitLoop
+		EndIf
+	Next
+	If $avRET[1] = "" Then SetError(1)
+	Return $avRET
+EndFunc   ;==>_ProcessGetWin
 ;===============================================================================
 ; Function Name:    _ProcessListProperties()
 ; Description:   Get various properties of a process, or all processes
@@ -1185,102 +1185,102 @@ EndFunc
 ;            		To get time-base properties (CPU and Memory usage), a 100ms SWbemRefresher is used.
 ;===============================================================================
 Func _ProcessListProperties($Process = "", $sComputer = ".")
-    Local $sUserName, $sMsg, $sUserDomain, $avProcs, $dtmDate
-    Local $avProcs[1][2] = [[0, ""]], $n = 1
+	Local $sUserName, $sMsg, $sUserDomain, $avProcs, $dtmDate
+	Local $avProcs[1][2] = [[0, ""]], $n = 1
 
-    ; Convert PID if passed as string
-    If StringIsInt($Process) Then $Process = Int($Process)
+	; Convert PID if passed as string
+	If StringIsInt($Process) Then $Process = Int($Process)
 
-    ; Connect to WMI and get process objects
-    $oWMI = ObjGet("winmgmts:{impersonationLevel=impersonate,authenticationLevel=pktPrivacy, (Debug)}!\\" & $sComputer & "\root\cimv2")
-    If IsObj($oWMI) Then
-        ; Get collection processes from Win32_Process
-        If $Process == "" Then
-            ; Get all
-            $colProcs = $oWMI.ExecQuery("select * from win32_process")
-        ElseIf IsInt($Process) Then
-            ; Get by PID
-            $colProcs = $oWMI.ExecQuery("select * from win32_process where ProcessId = " & $Process)
-        Else
-            ; Get by Name
-            $colProcs = $oWMI.ExecQuery("select * from win32_process where Name = '" & $Process & "'")
-        EndIf
+	; Connect to WMI and get process objects
+	$oWMI = ObjGet("winmgmts:{impersonationLevel=impersonate,authenticationLevel=pktPrivacy, (Debug)}!\\" & $sComputer & "\root\cimv2")
+	If IsObj($oWMI) Then
+		; Get collection processes from Win32_Process
+		If $Process == "" Then
+			; Get all
+			$colProcs = $oWMI.ExecQuery("select * from win32_process")
+		ElseIf IsInt($Process) Then
+			; Get by PID
+			$colProcs = $oWMI.ExecQuery("select * from win32_process where ProcessId = " & $Process)
+		Else
+			; Get by Name
+			$colProcs = $oWMI.ExecQuery("select * from win32_process where Name = '" & $Process & "'")
+		EndIf
 
-        If IsObj($colProcs) Then
-            ; Return for no matches
-            If $colProcs.count = 0 Then Return $avProcs
+		If IsObj($colProcs) Then
+			; Return for no matches
+			If $colProcs.count = 0 Then Return $avProcs
 
-            ; Size the array
-            ReDim $avProcs[$colProcs.count + 1][10]
-            $avProcs[0][0] = UBound($avProcs) - 1
+			; Size the array
+			ReDim $avProcs[$colProcs.count + 1][10]
+			$avProcs[0][0] = UBound($avProcs) - 1
 
-            ; For each process...
-            For $oProc In $colProcs
-                ; [n][0] = Process name
-                $avProcs[$n][0] = $oProc.name
-                ; [n][1] = Process PID
-                $avProcs[$n][1] = $oProc.ProcessId
-                ; [n][2] = Parent PID
-                $avProcs[$n][2] = $oProc.ParentProcessId
-                ; [n][3] = Owner
-                If $oProc.GetOwner($sUserName, $sUserDomain) = 0 Then $avProcs[$n][3] = $sUserDomain & "\" & $sUserName
-                ; [n][4] = Priority
-                $avProcs[$n][4] = $oProc.Priority
-                ; [n][5] = Executable path
-                $avProcs[$n][5] = $oProc.ExecutablePath
-                ; [n][8] = Creation date/time
-                $dtmDate = $oProc.CreationDate
-                If $dtmDate <> "" Then
-                    ; Back referencing RegExp pattern from weaponx
-                    Local $sRegExpPatt = "\A(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(?:.*)"
-                    $dtmDate = StringRegExpReplace($dtmDate, $sRegExpPatt, "$2/$3/$1 $4:$5:$6")
-                EndIf
-                $avProcs[$n][8] = $dtmDate
-                ; [n][9] = Command line string
-                $avProcs[$n][9] = $oProc.CommandLine
+			; For each process...
+			For $oProc In $colProcs
+				; [n][0] = Process name
+				$avProcs[$n][0] = $oProc.name
+				; [n][1] = Process PID
+				$avProcs[$n][1] = $oProc.ProcessId
+				; [n][2] = Parent PID
+				$avProcs[$n][2] = $oProc.ParentProcessId
+				; [n][3] = Owner
+				If $oProc.GetOwner($sUserName, $sUserDomain) = 0 Then $avProcs[$n][3] = $sUserDomain & "\" & $sUserName
+				; [n][4] = Priority
+				$avProcs[$n][4] = $oProc.Priority
+				; [n][5] = Executable path
+				$avProcs[$n][5] = $oProc.ExecutablePath
+				; [n][8] = Creation date/time
+				$dtmDate = $oProc.CreationDate
+				If $dtmDate <> "" Then
+					; Back referencing RegExp pattern from weaponx
+					Local $sRegExpPatt = "\A(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(?:.*)"
+					$dtmDate = StringRegExpReplace($dtmDate, $sRegExpPatt, "$2/$3/$1 $4:$5:$6")
+				EndIf
+				$avProcs[$n][8] = $dtmDate
+				; [n][9] = Command line string
+				$avProcs[$n][9] = $oProc.CommandLine
 
-                ; increment index
-                $n += 1
-            Next
-        Else
-            SetError(2); Error getting process collection from WMI
-        EndIf
-        ; release the collection object
-        $colProcs = 0
+				; increment index
+				$n += 1
+			Next
+		Else
+			SetError(2) ; Error getting process collection from WMI
+		EndIf
+		; release the collection object
+		$colProcs = 0
 
-        ; Get collection of all processes from Win32_PerfFormattedData_PerfProc_Process
-        ; Have to use an SWbemRefresher to pull the collection, or all Perf data will be zeros
-        Local $oRefresher = ObjCreate("WbemScripting.SWbemRefresher")
-        $colProcs = $oRefresher.AddEnum($oWMI, "Win32_PerfFormattedData_PerfProc_Process" ).objectSet
-        $oRefresher.Refresh
+		; Get collection of all processes from Win32_PerfFormattedData_PerfProc_Process
+		; Have to use an SWbemRefresher to pull the collection, or all Perf data will be zeros
+		Local $oRefresher = ObjCreate("WbemScripting.SWbemRefresher")
+		$colProcs = $oRefresher.AddEnum($oWMI, "Win32_PerfFormattedData_PerfProc_Process").objectSet
+		$oRefresher.Refresh
 
-        ; Time delay before calling refresher
-        Local $iTime = TimerInit()
-        Do
-            Sleep(20)
-        Until TimerDiff($iTime) >= 100
-        $oRefresher.Refresh
+		; Time delay before calling refresher
+		Local $iTime = TimerInit()
+		Do
+			Sleep(20)
+		Until TimerDiff($iTime) >= 100
+		$oRefresher.Refresh
 
-        ; Get PerfProc data
-        For $oProc In $colProcs
-            ; Find it in the array
-            For $n = 1 To $avProcs[0][0]
-                If $avProcs[$n][1] = $oProc.IDProcess Then
-                    ; [n][6] = CPU usage
-                    $avProcs[$n][6] = $oProc.PercentProcessorTime
-                    ; [n][7] = memory usage
-                    $avProcs[$n][7] = $oProc.WorkingSet
-                    ExitLoop
-                EndIf
-            Next
-        Next
-    Else
-        SetError(1); Error connecting to WMI
-    EndIf
+		; Get PerfProc data
+		For $oProc In $colProcs
+			; Find it in the array
+			For $n = 1 To $avProcs[0][0]
+				If $avProcs[$n][1] = $oProc.IDProcess Then
+					; [n][6] = CPU usage
+					$avProcs[$n][6] = $oProc.PercentProcessorTime
+					; [n][7] = memory usage
+					$avProcs[$n][7] = $oProc.WorkingSet
+					ExitLoop
+				EndIf
+			Next
+		Next
+	Else
+		SetError(1) ; Error connecting to WMI
+	EndIf
 
-    ; Return array
-    Return $avProcs
-EndFunc
+	; Return array
+	Return $avProcs
+EndFunc   ;==>_ProcessListProperties
 ;===============================================================================
 ; Function:		_IsIP
 ; Purpose:		Validate if string is an IP address
@@ -1292,38 +1292,38 @@ EndFunc
 ; Author:
 ; Date/Version:   	10/15/2014  --  v2.0.4
 ;===============================================================================
-Func _IsIP($sIP,$P_strict=0)
-    $t_ip=$sIP
-    $port=StringInStr($t_ip,":");check for : (for the port)
-    If $port Then ;has a port attached
-        $t_ip=StringLeft($sIP,$port-1);remove the port from the rest of the ip
-        If $P_strict Then ;return 0 if port is wrong
-            $zport=Int(StringTrimLeft($sIP,$port));retrieve the port
-            If $zport>65000 Or $zport<0 Then Return 0;port is wrong
-        EndIf
-    EndIf
-    $zip=StringSplit($t_ip,".")
-    If $zip[0]<>4  Then Return 0;incorect number of segments
-    If Int($zip[1])>255 Or Int($zip[1])<1 Then Return 0;xxx.ooo.ooo.ooo
-    If Int($zip[2])>255 Or Int($zip[1])<0 Then Return 0;ooo.xxx.ooo.ooo
-    If Int($zip[3])>255 Or Int($zip[3])<0 Then Return 0;ooo.ooo.xxx.ooo
-    If Int($zip[4])>255 Or Int($zip[4])<0 Then Return 0;ooo.ooo.ooo.xxx
-    $bc=1 ; is it 255.255.255.255 ?
-    For $i=1 To 4
-        If $zip[$i]<>255 Then $bc=0;no
-        ;255.255.255.255 can never be a ip but anything else that ends with .255 can be
-        ;ex:10.10.0.255 can actually be an ip address and not a broadcast address
-    Next
-    If $bc Then Return 0;a broadcast address is not really an ip address...
-    If $zip[4]=0 Then;subnet not ip
-        If $port Then
-            Return 0;subnet with port?
-        Else
-            Return 2;subnet
-        EndIf
-    EndIf
-    Return 1;;string is a ip
-EndFunc
+Func _IsIP($sIP, $P_strict = 0)
+	$t_ip = $sIP
+	$port = StringInStr($t_ip, ":") ;check for : (for the port)
+	If $port Then ;has a port attached
+		$t_ip = StringLeft($sIP, $port - 1) ;remove the port from the rest of the ip
+		If $P_strict Then ;return 0 if port is wrong
+			$zport = Int(StringTrimLeft($sIP, $port)) ;retrieve the port
+			If $zport > 65000 Or $zport < 0 Then Return 0 ;port is wrong
+		EndIf
+	EndIf
+	$zip = StringSplit($t_ip, ".")
+	If $zip[0] <> 4 Then Return 0 ;incorect number of segments
+	If Int($zip[1]) > 255 Or Int($zip[1]) < 1 Then Return 0 ;xxx.ooo.ooo.ooo
+	If Int($zip[2]) > 255 Or Int($zip[1]) < 0 Then Return 0 ;ooo.xxx.ooo.ooo
+	If Int($zip[3]) > 255 Or Int($zip[3]) < 0 Then Return 0 ;ooo.ooo.xxx.ooo
+	If Int($zip[4]) > 255 Or Int($zip[4]) < 0 Then Return 0 ;ooo.ooo.ooo.xxx
+	$BC = 1 ; is it 255.255.255.255 ?
+	For $i = 1 To 4
+		If $zip[$i] <> 255 Then $BC = 0 ;no
+		;255.255.255.255 can never be a ip but anything else that ends with .255 can be
+		;ex:10.10.0.255 can actually be an ip address and not a broadcast address
+	Next
+	If $BC Then Return 0 ;a broadcast address is not really an ip address...
+	If $zip[4] = 0 Then ;subnet not ip
+		If $port Then
+			Return 0 ;subnet with port?
+		Else
+			Return 2 ;subnet
+		EndIf
+	EndIf
+	Return 1 ;;string is a ip
+EndFunc   ;==>_IsIP
 ;==============================================================================================
 ; Description:		FileRegister($ext, $cmd, $verb[, $def[, $icon = ""[, $desc = ""]]])
 ;					Registers a file type in Explorer
@@ -1387,7 +1387,7 @@ Func _FileRegister($ext, $cmd, $verb, $def = 0, $icon = "", $desc = "")
 			RegWrite("HKCR\" & $loc & "\DefaultIcon", "oldicon", "REG_SZ", $curicon)
 		EndIf
 	EndIf
-EndFunc
+EndFunc   ;==>_FileRegister
 ;===============================================================================
 ; Description:		FileUnRegister($ext, $verb)
 ;					UnRegisters a verb for a file type in Explorer
@@ -1424,7 +1424,7 @@ Func _FileUnRegister($ext, $verb)
 			RegDelete("HKCR\" & $loc & "\shell\" & $verb)
 		EndIf
 	EndIf
-EndFunc
+EndFunc   ;==>_FileUnRegister
 ;===============================================================================
 ; Function:		_SetDefaultContextItem
 ; Purpose:		Set default context item for file type
@@ -1438,13 +1438,13 @@ EndFunc
 ; Date/Version:   	10/15/2014  --  v1.1
 ;===============================================================================
 Func _SetDefaultContextItem($sExtention, $sVerb)
-	local $sRegistryLocation = RegRead("HKCR\." & $sExtention, "")
-	If @error Then return 0
+	Local $sRegistryLocation = RegRead("HKCR\." & $sExtention, "")
+	If @error Then Return 0
 
 	RegWrite("HKCR\" & $sRegistryLocation & "\shell", "", "REG_SZ", $sVerb)
-	If @error Then return 0
-	return 1
-EndFunc
+	If @error Then Return 0
+	Return 1
+EndFunc   ;==>_SetDefaultContextItem
 ;===============================================================================
 ; Function:		_GetDefaultContextItem
 ; Purpose:		Get default context item for file type
@@ -1458,13 +1458,13 @@ EndFunc
 ;===============================================================================
 Func _GetDefaultContextItem($sExtention)
 	Local $sRegistryLocation = RegRead("HKCR\." & $sExtention, "")
-	If @error Then return 0
+	If @error Then Return 0
 
 	Local $sVerb = RegRead("HKCR\" & $sRegistryLocation & "\shell", "")
-	If @error Then return 0
+	If @error Then Return 0
 
-	return $sVerb
-EndFunc
+	Return $sVerb
+EndFunc   ;==>_GetDefaultContextItem
 ;===============================================================================
 ; Function:		_GetBroadcast
 ; Purpose:		Get the UDP broadcast ip address for the adapter address specified
@@ -1477,28 +1477,28 @@ EndFunc
 ; Date/Version:   	10/15/2014  --  v1.1
 ;===============================================================================
 Func _GetBroadcast($sIP)
-    $objWMIService = ObjGet("winmgmts:{impersonationLevel=Impersonate}!\\" & @ComputerName & "\root\cimv2")
-    If Not IsObj($objWMIService) Then Exit
-    $colAdapters = $objWMIService.ExecQuery ("SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = True")
-    For $objAdapter in $colAdapters
-        If Not ($objAdapter.IPAddress) = " " Then
-            For $i = 0 To UBound($objAdapter.IPAddress)-1
-                If $objAdapter.IPAddress($i)=$sIP Then
-					Local $BC=""
-					$IP=StringSplit($objAdapter.IPAddress($i) , ".")
-					$MASK=StringSplit($objAdapter.IPSubnet($i) , ".")
-					If $IP[0]<>4 Then Return SetError(1,0,0)
-					If $MASK[0]<>4 Then Return SetError(2,0,0)
-					For $i=1 To 4
-						$BC&=BitXOR(BitXOR($MASK[$i],255),BitAND($IP[$i],$MASK[$i]))&"."
+	$objWMIService = ObjGet("winmgmts:{impersonationLevel=Impersonate}!\\" & @ComputerName & "\root\cimv2")
+	If Not IsObj($objWMIService) Then Exit
+	$colAdapters = $objWMIService.ExecQuery("SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = True")
+	For $objAdapter In $colAdapters
+		If Not ($objAdapter.IPAddress) = " " Then
+			For $i = 0 To UBound($objAdapter.IPAddress) - 1
+				If $objAdapter.IPAddress($i) = $sIP Then
+					Local $BC = ""
+					$IP = StringSplit($objAdapter.IPAddress($i), ".")
+					$MASK = StringSplit($objAdapter.IPSubnet($i), ".")
+					If $IP[0] <> 4 Then Return SetError(1, 0, 0)
+					If $MASK[0] <> 4 Then Return SetError(2, 0, 0)
+					For $i = 1 To 4
+						$BC &= BitXOR(BitXOR($MASK[$i], 255), BitAND($IP[$i], $MASK[$i])) & "."
 					Next
-					Return StringTrimRight($BC,1)
-				endif
-            Next
-        EndIf
-    Next
-    Return 0
-EndFunc
+					Return StringTrimRight($BC, 1)
+				EndIf
+			Next
+		EndIf
+	Next
+	Return 0
+EndFunc   ;==>_GetBroadcast
 ;===============================================================================
 ; Function:		_SocketToIP
 ; Purpose:		Get the IP a socket is connected to
@@ -1511,19 +1511,19 @@ EndFunc
 ; Date/Version:   	10/15/2014  --  v1.1
 ;===============================================================================
 Func _SocketToIP($iSocket)
-    Local $aRet
-    Local $sSockAddress = DllStructCreate("short;ushort;uint;char[8]")
+	Local $aRet
+	Local $sSockAddress = DllStructCreate("short;ushort;uint;char[8]")
 
-    $aRet = DllCall("Ws2_32.dll", "int", "getpeername", "int", $iSocket, _
-            "ptr", DllStructGetPtr($sSockAddress), "int*", DllStructGetSize($sSockAddress))
-    If Not @error And $aRet[0] = 0 Then
-        $aRet = DllCall("Ws2_32.dll", "str", "inet_ntoa", "int", DllStructGetData($sSockAddress, 3))
-        If Not @error Then $aRet = $aRet[0]
-    Else
-        $aRet = 0
-    EndIf
+	$aRet = DllCall("Ws2_32.dll", "int", "getpeername", "int", $iSocket, _
+			"ptr", DllStructGetPtr($sSockAddress), "int*", DllStructGetSize($sSockAddress))
+	If Not @error And $aRet[0] = 0 Then
+		$aRet = DllCall("Ws2_32.dll", "str", "inet_ntoa", "int", DllStructGetData($sSockAddress, 3))
+		If Not @error Then $aRet = $aRet[0]
+	Else
+		$aRet = 0
+	EndIf
 
-    $sSockAddress = 0
+	$sSockAddress = 0
 
-    Return $aRet
-EndFunc
+	Return $aRet
+EndFunc   ;==>_SocketToIP
