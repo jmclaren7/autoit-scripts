@@ -1,5 +1,6 @@
 ;===============================================================================
-;GitHub version
+; Common functions used in my scripts
+; https://github.com/jmclaren7/autoit-scripts/blob/master/CommonFunctions.au3
 ;===============================================================================
 #include-once
 #include <Array.au3>
