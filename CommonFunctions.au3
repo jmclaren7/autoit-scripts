@@ -407,17 +407,16 @@ Func _ProcessWaitClose($iPid, $Live = False, $Diag = False)
 		$sStdRead = StringReplace($sStdRead, @CR & @LF & @CR & @LF, @CR & @LF)
 
 		If $Diag Then
-			$sStdRead = StringReplace($sStdRead, @CRLF, "@CRLF")
+			$sStdRead = StringReplace($sStdRead, @CRLF, "_@CRLF")
 			$sStdRead = StringReplace($sStdRead, @CR, "@CR" & @CR)
 			$sStdRead = StringReplace($sStdRead, @LF, "@LF" & @LF)
-			$sStdRead = StringReplace($sStdRead, "@CRLF", "@CRLF" & @CRLF)
+			$sStdRead = StringReplace($sStdRead, "_@CRLF", "@CRLF" & @CRLF)
 		EndIf
 
 		If $sStdRead <> @CRLF Then
 			$sData &= $sStdRead
 			If $Live And $sStdRead <> "" Then
 				If StringRight($sStdRead, 2) = @CRLF Then $sStdRead = StringTrimRight($sStdRead, 2)
-				;If StringRight($sStdRead, 1) = @CR Then $sStdRead = StringTrimRight($sStdRead, 1) ; This may never be needed, leaving disabled
 				If StringRight($sStdRead, 1) = @LF Then $sStdRead = StringTrimRight($sStdRead, 1)
 				_ConsoleWrite($sStdRead)
 			EndIf
