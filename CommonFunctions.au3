@@ -1,8 +1,9 @@
+#include-once
 ;===============================================================================
 ; Common functions used in my scripts
 ; https://github.com/jmclaren7/autoit-scripts/blob/master/CommonFunctions.au3
 ;===============================================================================
-#include-once
+; If these files have already been included using a custom path, you may need to remove them here
 #include <Array.au3>
 #include <Security.au3>
 #include <String.au3>
