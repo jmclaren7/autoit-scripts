@@ -12,6 +12,36 @@
 ;===============================================================================
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _FileModifiedAge
+; Description ...:
+; Syntax ........: _FileModifiedAge($sFile)
+; Parameters ....: $sFile               - a string value.
+; Return values .: None
+; Author ........: AutoIT Forum, modified by JohnMC - JohnsCS.com
+; Date/Version ..: 11/15/2023  --  v1.1
+; ===============================================================================================================================
+Func _FileModifiedAge($sFile)
+	$hFile = _WinAPI_CreateFile($sFile, 2, 2)
+	If $hFile = 0 Then
+		Return SetError(1, 0, -1)
+	Else
+		$tFileTime = _Date_Time_GetFileTime($hFile)
+		$aFileTime = _Date_Time_FileTimeToArray($tFileTime[2])
+		$sFileTime = _Date_Time_FileTimeToStr($tFileTime[2], 1)
+
+		_WinAPI_CloseHandle($hFile)
+
+		$tSystemTime = _Date_Time_GetSystemTime()
+		$sSystemTime = _Date_Time_SystemTimeToDateTimeStr($tSystemTime, 1)
+		$aSystemTime = _Date_Time_SystemTimeToArray($tSystemTime)
+
+		$iFileAge = _DateDiff('s', $sFileTime, $sSystemTime) * 1000 + $aSystemTime[6] - $aFileTime[6]
+
+		Return $iFileAge
+	EndIf
+EndFunc   ;==>_FileModifiedAge
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: _WMI
 ; Description ...: Run a WMI query with th eoption of returning the first object (default) or all objects
 ; Syntax ........: _WMI($Query[, $Single = True])
@@ -24,17 +54,17 @@
 Func _WMI($Query, $Single = True)
 	If Not IsDeclared("_objWMIService") Then
 		Local $Object = ObjGet("winmgmts:\\.\root\CIMV2")
-		If @error Or Not IsObject($Object) Then Return SetError(1, 0, 0)
+		If @error Or Not IsObj($Object) Then Return SetError(1, 0, 0)
 		Global $_objWMIService = $Object
 	EndIf
 
 	Local $colItems = $_objWMIService.ExecQuery($Query)
-	If @error Or Not IsObject($colItems) Then Return SetError(2, 0, 0)
+	If @error Or Not IsObj($colItems) Then Return SetError(2, 0, 0)
 
 	If $Single Then
 		Local $objItem
 
-		For $objItem in $colItems
+		For $objItem In $colItems
 			Return $objItem
 		Next
 
@@ -43,7 +73,7 @@ Func _WMI($Query, $Single = True)
 
 	EndIf
 
-EndFunc
+EndFunc   ;==>_WMI
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _INetSmtpMailCom
@@ -1271,7 +1301,7 @@ EndFunc   ;==>_ProcessGetWin
 ;            		To get time-base properties (CPU and Memory usage), a 100ms SWbemRefresher is used.
 ;===============================================================================
 Func _ProcessListProperties($Process = "", $sComputer = ".")
-	Local $sUserName, $sMsg, $sUserDomain, $avProcs, $dtmDate
+	Local $sUsername, $sMsg, $sUserDomain, $avProcs, $dtmDate
 	Local $avProcs[1][2] = [[0, ""]], $n = 1
 
 	; Convert PID if passed as string
@@ -1309,7 +1339,7 @@ Func _ProcessListProperties($Process = "", $sComputer = ".")
 				; [n][2] = Parent PID
 				$avProcs[$n][2] = $oProc.ParentProcessId
 				; [n][3] = Owner
-				If $oProc.GetOwner($sUserName, $sUserDomain) = 0 Then $avProcs[$n][3] = $sUserDomain & "\" & $sUserName
+				If $oProc.GetOwner($sUsername, $sUserDomain) = 0 Then $avProcs[$n][3] = $sUserDomain & "\" & $sUsername
 				; [n][4] = Priority
 				$avProcs[$n][4] = $oProc.Priority
 				; [n][5] = Executable path
