@@ -10,6 +10,73 @@
 #include <GUIConstantsEx.au3>
 ;===============================================================================
 
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _INetSmtpMailCom
+; Description ...: Send an email using a Windows API with authentication and encryption which isn't available in the AutoIt UDF _INetSmtpMail
+; Syntax ........: _INetSmtpMailCom($sSMTPServer, $sFromName, $sFromAddress, $sToAddress[, $sSubject = ""[, $sBody = ""[,
+;                  $sUsername = ""[, $sPassword = ""[, $sCCAddress = ""[, $sBCCAddress = ""[, $iPort = 587[, $bSSL = False[,
+;                  $bTLS = True]]]]]]]]])
+; Parameters ....: $sSMTPServer         - a string value.
+;                  $sFromName           - a string value.
+;                  $sFromAddress        - a string value.
+;                  $sToAddress          - a string value.
+;                  $sSubject            - [optional] a string value. Default is "".
+;                  $sBody               - [optional] a string value. Default is "".
+;                  $sUsername           - [optional] a string value. Default is "".
+;                  $sPassword           - [optional] a string value. Default is "".
+;                  $sCCAddress          - [optional] a string value. Default is "".
+;                  $sBCCAddress         - [optional] a string value. Default is "".
+;                  $iPort               - [optional] an integer value. Default is 587.
+;                  $bSSL                - [optional] a boolean value. Default is False.
+;                  $bTLS                - [optional] a boolean value. Default is True.
+; Return values .: None
+; Author ........: AutoIT Forum, modified by JohnMC - JohnsCS.com
+; Date/Version ..: 11/15/2023  --  v1.1
+; ===============================================================================================================================
+Func _INetSmtpMailCom($sSMTPServer, $sFromName, $sFromAddress, $sToAddress, $sSubject = "", $sBody = "", $sUsername = "", $sPassword = "", $sCCAddress = "", $sBCCAddress = "", $iPort = 587, $bSSL = False, $bTLS = True)
+	Local $oMail = ObjCreate("CDO.Message")
+
+	$oMail.From = '"' & $sFromName & '" <' & $sFromAddress & '>'
+	$oMail.To = $sToAddress
+	$oMail.Subject = $sSubject
+
+	If $sCCAddress Then $oMail.Cc = $sCCAddress
+	If $sBCCAddress Then $oMail.Bcc = $sBCCAddress
+
+	If StringInStr($sBody, "<") And StringInStr($sBody, ">") Then
+		$oMail.HTMLBody = $sBody
+	Else
+		$oMail.Textbody = $sBody & @CRLF
+	EndIf
+
+	$oMail.Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/sendusing") = 2
+	$oMail.Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/smtpserver") = $sSMTPServer
+	$oMail.Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/smtpserverport") = $iPort
+
+	; Authenticated SMTP
+	If $sUsername <> "" Then
+		$oMail.Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/smtpauthenticate") = 1
+		$oMail.Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/sendusername") = $sUsername
+		$oMail.Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/sendpassword") = $sPassword
+	EndIf
+
+	; Set security parameters
+	If $bSSL Then $oMail.Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/smtpusessl") = True
+	If $bTLS Then $oMail.Configuration.Fields.Item("http://schemas.microsoft.com/cdo/configuration/sendtls") = True
+
+	; Update settings
+	$oMail.Configuration.Fields.Update
+	$oMail.Fields.Update
+
+	; Send the Message
+	$oMail.Send
+	If @error Then Return SetError(2, 0, 0)
+
+	$oMail = ""
+
+EndFunc   ;==>_INetSmtpMailCom
+
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _StringExtract
 ; Description ...:
