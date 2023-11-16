@@ -23,7 +23,7 @@
 ; ===============================================================================================================================
 Func _WMI($Query, $Single = True)
 	If Not IsDeclared("_objWMIService") Then
-		Local $Object = ObjGet("winmgmts:\root\CIMV2")
+		Local $Object = ObjGet("winmgmts:\\.\root\CIMV2")
 		If @error Or Not IsObject($Object) Then Return SetError(1, 0, 0)
 		Global $_objWMIService = $Object
 	EndIf
