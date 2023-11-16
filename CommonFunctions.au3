@@ -10,6 +10,39 @@
 #include <GUIConstantsEx.au3>
 ;===============================================================================
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _WMI
+; Description ...: Run a WMI query with th eoption of returning the first object (default) or all objects
+; Syntax ........: _WMI($Query[, $Single = True])
+; Parameters ....: $Query               - an unknown value.
+;                  $Single              - [optional] Return the first object, Default is True.
+; Return values .: Object(s)
+; Author ........: JohnMC - JohnsCS.com
+; Date/Version ..: 11/15/2023  --  v1.1
+; ===============================================================================================================================
+Func _WMI($Query, $Single = True)
+	If Not IsDeclared("_objWMIService") Then
+		Local $Object = ObjGet("winmgmts:\root\CIMV2")
+		If @error Or Not IsObject($Object) Then Return SetError(1, 0, 0)
+		Global $_objWMIService = $Object
+	EndIf
+
+	Local $colItems = $_objWMIService.ExecQuery($Query)
+	If @error Or Not IsObject($colItems) Then Return SetError(2, 0, 0)
+
+	If $Single Then
+		Local $objItem
+
+		For $objItem in $colItems
+			Return $objItem
+		Next
+
+	Else
+		Return $colItems
+
+	EndIf
+
+EndFunc
 
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _INetSmtpMailCom
