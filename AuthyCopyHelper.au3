@@ -2,7 +2,7 @@
 #AutoIt3Wrapper_Icon=_Icon.ico
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Description=AuthyHelper
-#AutoIt3Wrapper_Res_Fileversion=1.0.0.6
+#AutoIt3Wrapper_Res_Fileversion=1.0.0.9
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
 #AutoIt3Wrapper_Res_SaveSource=y
 #AutoIt3Wrapper_Res_Language=1033
@@ -17,39 +17,27 @@ Opt("MouseCoordMode", 2)
 TraySetIcon ("%USERPROFILE%\AppData\Local\authy\Authy Desktop.exe")
 
 $WinTitle = "Twilio Authy"
+$HotKetSet = False
 
 While 1
-	If WinActive($WinTitle) Then
+	If WinActive($WinTitle) And Not $HotKetSet Then
 		_ConsoleWrite("Set")
-		HotKeySet("^c","AuthCopy")
-		While WinActive($WinTitle)
+		HotKeySet("^c","AuthClickCopy")
+		$HotKetSet = True
 
-			Sleep(100)
-		Wend
-		_ConsoleWrite("Forget")
+	Elseif Not WinActive($WinTitle) And $HotKetSet Then
+		_ConsoleWrite("Unset")
 		HotKeySet("^c")
+		$HotKetSet = False
+
 	EndIf
 
-	Sleep(300)
-Wend
-
-Func AuthCopy()
-	_ConsoleWrite("AuthCopy")
-	AuthClickCopy()
-Endfunc
-
-Func AuthDelayCopy()
-	_ConsoleWrite("AuthDelayCopy")
-	HotKeySet("{LCTRL}")
-	Send("{LCTRL}")
-	HotKeySet("{LCTRL}","AuthDelayCopy")
 	Sleep(100)
-	AuthClickCopy()
-Endfunc
+Wend
 
 Func AuthClickCopy()
 	_ConsoleWrite("AuthClickCopy")
-	ControlClick($WinTitle, "", "", "Left", 1, 350, 530)
+	ControlClick($WinTitle, "", "", "Left", 1, 350, 510)
 Endfunc
 
 Func _ConsoleWrite($Text)
