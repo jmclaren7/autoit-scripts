@@ -780,6 +780,8 @@ Func _Log($sMessage, $iLevel = 1)
 	; Global options
 	If Not IsDeclared("LogLevel") Then Global $LogLevel = 1 ; Only show messages this level or below
 	If Not IsDeclared("LogTitle") Then Global $LogTitle = "" ; Title to use for log GUI, no title will skip the GUI
+	If Not IsDeclared("LogWindowStart") Then Global $LogWindowStart = -1 ; -1 for center
+	If Not IsDeclared("LogWindowSize") Then Global $LogWindowSize = 750 ; Starting width, height will be .6 of this value
 	If Not IsDeclared("LogFullPath") Then Global $LogFullPath = "" ; The path of the log file, empty value will not log to file
 	If Not IsDeclared("LogFileMaxSize") Then Global $LogFileMaxSize = 1024 ; Size limit for log in KB
 	If Not IsDeclared("LogFlushAlways") Then Global $LogFlushAlways = False
@@ -798,8 +800,8 @@ Func _Log($sMessage, $iLevel = 1)
 	If $LogTitle <> "" Then
 		If Not IsDeclared("_hLogEdit") Then
 			; The GUI doesn't exist, create it
-			Global $_hLogWindow = GUICreate($LogTitle, 750, 450, -1, -1, BitOR($GUI_SS_DEFAULT_GUI, $WS_SIZEBOX))
-			Global $_hLogEdit = GUICtrlCreateEdit("", 0, 0, 750, 450, BitOR($ES_MULTILINE, $ES_WANTRETURN, $WS_VSCROLL, $WS_HSCROLL))
+			Global $_hLogWindow = GUICreate($LogTitle, $LogWindowSize, Round($LogWindowSize * 0.6), $LogWindowStart, $LogWindowStart, BitOR($GUI_SS_DEFAULT_GUI, $WS_SIZEBOX))
+			Global $_hLogEdit = GUICtrlCreateEdit("", 0, 0, $LogWindowSize, Round($LogWindowSize * 0.6), BitOR($ES_MULTILINE, $ES_WANTRETURN, $WS_VSCROLL, $WS_HSCROLL))
 			GUICtrlSetFont(-1, 10, 400, 0, "Consolas")
 			GUICtrlSetColor(-1, 0xFFFFFF)
 			GUICtrlSetBkColor(-1, 0x000000)
