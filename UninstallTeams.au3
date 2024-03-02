@@ -1,5 +1,5 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
-#AutoIt3Wrapper_UseUpx=y
+#AutoIt3Wrapper_UseUpx=n
 #AutoIt3Wrapper_Change2CUI=y
 #AutoIt3Wrapper_Res_Fileversion=1.0.0.10
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y

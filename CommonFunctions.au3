@@ -5,13 +5,77 @@
 ;===============================================================================
 ; If these files have already been included using a custom path, you may need to remove them here
 #include <Array.au3>
-#include <Security.au3>
-#include <String.au3>
 #include <AutoItConstants.au3>
+#include <Date.au3>
+#include <EditConstants.au3>
 #include <File.au3>
 #include <GUIConstantsEx.au3>
+#include <GuiEdit.au3>
+#include <Security.au3>
+#include <String.au3>
+#include <WindowsConstants.au3>
 ;===============================================================================
 
+; #FUNCTION# ====================================================================================================================
+; Name ..........: IsActivated
+; Description ...: Check Windows activation status
+; Syntax ........: IsActivated()
+; Parameters ....: None
+; Return values .: A string with the activation status
+;					@error will be true if activation status could not be retrieved
+;					@extended will be 0 for activated and >0 for not activated
+; Author ........: AutoIT Forum, modified by JohnMC - JohnsCS.com
+; Date/Version ..: 03/02/2024  --  v1.1
+; ===============================================================================================================================
+Func IsActivated()
+	$oWMIService = ObjGet("winmgmts:\\.\root\cimv2")
+	If Not IsObj($oWMIService) Then Return SetError(1, 0, "WMI Object Error")
+
+	$oCollection = $oWMIService.ExecQuery("SELECT Description, LicenseStatus, GracePeriodRemaining FROM SoftwareLicensingProduct WHERE PartialProductKey <> null")
+	If Not IsObj($oCollection) Then Return SetError(2, 0, "WMI Query Error")
+
+	For $oItem In $oCollection
+		Switch $oItem.LicenseStatus
+			Case 0
+				Return SetError(0, 1, "Unlicensed")
+
+			Case 1
+				If $oItem.GracePeriodRemaining Then
+					If StringInStr($oItem.Description, "TIMEBASED_") Then
+						Return SetError(0, 0, "Timebased activation will expire in " & Round($oItem.GracePeriodRemaining / 60 / 24, 1) & " days")
+
+					Else
+						Return SetError(0, 0, "Volume activation will expire in " & Round($oItem.GracePeriodRemaining / 60 / 24, 1) & " days")
+
+					EndIf
+				Else
+					Return SetError(0, 0, "The machine is permanently activated.")
+
+				EndIf
+
+			Case 2
+				Return SetError(0, 2, "Initial grace period ends in " & Round($oItem.GracePeriodRemaining / 60 / 24, 1) & " days")
+
+			Case 3
+				Return SetError(0, 3, "Additional grace period ends in " & Round($oItem.GracePeriodRemaining / 60 / 24, 1) & " days")
+
+			Case 4
+				Return SetError(0, 4, "Non-genuine grace period ends in " & Round($oItem.GracePeriodRemaining / 60 / 24, 1) & " days")
+
+			Case 5
+				Return SetError(0, 5, "Windows is in Notification mode")
+
+			Case 6
+				Return SetError(0, 6, "Extended grace period ends in " & Round($oItem.GracePeriodRemaining / 60 / 24, 1) & " days")
+
+			Case Else
+				Return SetError(4, 7, "Unknown Status Code")
+
+		EndSwitch
+	Next
+
+	Return SetError(3, 0, "Unknown Error")
+EndFunc   ;==>IsActivated
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _FileModifiedAge
 ; Description ...:

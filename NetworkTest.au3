@@ -26,6 +26,7 @@
 #include <Array.au3>
 #include <String.au3>
 #include <WinAPIShellEx.au3>
+
 #include "CommonFunctions.au3"
 
 Opt("GUIOnEventMode", 1)
@@ -36,7 +37,7 @@ Global $RunState = False
 Global $MainSize = FileGetSize(@ScriptFullPath)
 Global $Version = FileGetVersion (@ScriptFullPath)&"-"&$MainSize
 Global $Title = "Network-Test v"&$Version
-Global $LogFile = StringTrimRight(@ScriptName,4)&"_Log.txt"
+Global $LogFile = StringTrimRight(@ScriptName,4)&"_LogThis.txt"
 Global $LogFilePath = @TempDir&"\"&$LogFile
 Global $LogFileMaxSize = 1024*1024*5
 Global $LogToFile = False
@@ -81,7 +82,7 @@ GUICtrlSetOnEvent ($ButtonExit, "_Exit")
 WinSetTitle ($NetTestGUI1, "", $Title)
 
 Global $Log
-_Log("Program Start")
+_LogThis("Program Start")
 
 $Adapter = _NetAdapterInfo()
 GUICtrlSetData($EditHost,$Adapter[4]&@CRLF&"1.1.1.1"&@CRLF&"google.com")
@@ -100,7 +101,7 @@ While 1
 		$Delay = Int(GUICtrlRead($InputDelay))
 	Endif
 
-	If _IsChecked($CheckboxLogFile) Then
+	If GUICtrlRead($CheckboxLogFile) = $GUI_CHECKED Then
 		$LogToFile = True
 	Else
 		$LogToFile = False
@@ -117,8 +118,8 @@ While 1
 			If $ThisHost = "" Then ContinueLoop
 
 			$Latency = Ping($ThisHost, 200)
-			If Not @error AND NOT _IsChecked($CheckBoxErrorOnly) Then
-				_Log($ThisHost & ":  time=" & $Latency & "ms ")
+			If Not @error AND NOT GUICtrlRead($CheckBoxErrorOnly) = $GUI_CHECKED Then
+				_LogThis($ThisHost & ":  time=" & $Latency & "ms ")
 			ElseIf @error Then
 				Switch @error
 					Case 1
@@ -132,11 +133,11 @@ While 1
 
 				EndSwitch
 
-				_Log($ThisHost & ":  error=" & $Desc)
+				_LogThis($ThisHost & ":  error=" & $Desc)
 			EndIf
 
 			If $Latency > $Delay Then $Latency = $Delay
-			_sleep(_Log($Delay-$Latency))
+			_sleep(_LogThis($Delay-$Latency))
 		Next
 	EndIf
 
@@ -145,18 +146,18 @@ WEnd
 ;============================================================================================================
 ;============================================================================================================
 Func _Start()
-	_Log("Start")
+	_LogThis("Start")
 	$RunState = True
 	GUICtrlSetState($ButtonStop, $GUI_ENABLE)
 	GUICtrlSetState($ButtonStart, $GUI_DISABLE)
 EndFunc
 Func _Stop()
-	_Log("Stop")
+	_LogThis("Stop")
 	$RunState = False
 	GUICtrlSetState($ButtonStop, $GUI_DISABLE)
 	GUICtrlSetState($ButtonStart, $GUI_ENABLE)
 EndFunc
-Func _Log($Data)
+Func _LogThis($Data)
 	$Log = $Log & _ConsoleWrite($Data)
 	GUICtrlSetData($EditLog, $Log)
 	GUICtrlSendMsg($EditLog, "0xB7", 0, 0)
@@ -164,7 +165,7 @@ Func _Log($Data)
 EndFunc
 
 Func _NetAdapterInfo()
-	_Log("Collecting Adapter Information")
+	_LogThis("Collecting Adapter Information")
 	Local $Data[6]
 	Local $objWMIService = ObjGet('winmgmts:\\' & @ComputerName & '\root\CIMV2')
 	Local $colItems = $objWMIService.ExecQuery("SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled=true")
@@ -182,7 +183,7 @@ Func _NetAdapterInfo()
 	Return SetError(1, 0, $Data)
 EndFunc
 Func _OpenLog()
-	_Log("Opening Log Location")
+	_LogThis("Opening Log Location")
 	_WinAPI_ShellOpenFolderAndSelectItems ($LogFilePath)
 EndFunc
 Func _HideGUI()
