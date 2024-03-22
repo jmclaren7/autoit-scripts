@@ -11,9 +11,12 @@
 #include <File.au3>
 #include <GUIConstantsEx.au3>
 #include <GuiEdit.au3>
+#include <APIFilesConstants.au3>
 #include <Security.au3>
 #include <String.au3>
+#include <WinAPIFiles.au3>
 #include <WinAPIProc.au3>
+#include <WinAPIShPath.au3>
 #include <WinAPISysWin.au3>
 #include <WindowsConstants.au3>
 ;===============================================================================
@@ -57,7 +60,6 @@ Func _GetVisibleWindows($GetText = False)
 	If Not IsArray($aWinList) Then Return SetError(0, 0, 0)
 	$aWinList[0][1] = "WinHandle"
 
-
 	; Add window states
 	$NewCol = UBound($aWinList, 2)
 	_ArrayColInsert($aWinList, $NewCol)
@@ -65,7 +67,6 @@ Func _GetVisibleWindows($GetText = False)
 	For $i = 1 To $aWinList[0][0]
 		$aWinList[$i][$NewCol] = WinGetState($aWinList[$i][1])
 	Next
-
 
 	; Add state descriptions
 	$LastCol = $NewCol
@@ -84,7 +85,6 @@ Func _GetVisibleWindows($GetText = False)
 		$aWinList[$i][$NewCol] = $Desc
 	Next
 
-
 	; Delete undesirable windows
 	Local $aNewWinList[0][UBound($aWinList, 2)]
 	Local $NewIndex = 0
@@ -99,7 +99,6 @@ Func _GetVisibleWindows($GetText = False)
 	$aNewWinList[0][0] = UBound($aNewWinList) - 1
 	$aWinList = $aNewWinList
 
-
 	;Get Process ID (PID) and add to the array.
 	$NewCol = UBound($aWinList, 2)
 	_ArrayColInsert($aWinList, $NewCol)
@@ -107,7 +106,6 @@ Func _GetVisibleWindows($GetText = False)
 	For $i = 1 To $aWinList[0][0]
 		$aWinList[$i][$NewCol] = WinGetProcess($aWinList[$i][1])
 	Next
-
 
 	; Add process name
 	$NewCol = UBound($aWinList, 2)
@@ -122,18 +120,19 @@ Func _GetVisibleWindows($GetText = False)
 		Next
 	Next
 
-
 	; Add path using winapi method
 	$NewCol = UBound($aWinList, 2)
 	_ArrayColInsert($aWinList, $NewCol)
 	$aWinList[0][$NewCol] = "Path"
 	For $i = 1 To $aWinList[0][0]
 		Local $Path = _WinAPI_GetProcessFileName($aWinList[$i][4])
+		; No path might mean the process is elevated so let's try some other things...
 		If $Path = "" Then
-			; _WinAPI_EnumProcessModules only helps if the stars align, exe is probably in the system folder anyway
+			; Might only help if the stars align
 			Local $aEnum = _WinAPI_EnumProcessModules($aWinList[$i][4])
 			If Not @error Then
 				$TestPath = $aEnum[1]
+				; The exe might be in the system folder (elevated cmd or task manager)
 			Else
 				$TestPath = @SystemDir & "\" & $aWinList[$i][5]
 			EndIf
@@ -145,7 +144,6 @@ Func _GetVisibleWindows($GetText = False)
 
 	Next
 
-
 	; Add command line string
 	$NewCol = UBound($aWinList, 2)
 	_ArrayColInsert($aWinList, $NewCol)
@@ -153,7 +151,6 @@ Func _GetVisibleWindows($GetText = False)
 	For $i = 1 To $aWinList[0][0]
 		$aWinList[$i][$NewCol] = _WinAPI_GetProcessCommandLine($aWinList[$i][4])
 	Next
-
 
 	; Add window position and size
 	;   -3200,-3200 is minimized window
@@ -168,7 +165,6 @@ Func _GetVisibleWindows($GetText = False)
 		EndIf
 	Next
 
-
 	; Add window style
 	$NewCol = UBound($aWinList, 2)
 	_ArrayColInsert($aWinList, $NewCol)
@@ -177,7 +173,6 @@ Func _GetVisibleWindows($GetText = False)
 		Local $tWINDOWINFO = _WinAPI_GetWindowInfo($aWinList[$i][1])
 		$aWinList[$i][$NewCol] = DllStructGetData($tWINDOWINFO, 'Style', 1)
 	Next
-
 
 	; Add style descriptions
 	$LastCol = $NewCol
@@ -198,7 +193,6 @@ Func _GetVisibleWindows($GetText = False)
 
 		$aWinList[$i][$NewCol] = $Desc
 	Next
-
 
 	; Add window ExStyle
 	$NewCol = UBound($aWinList, 2)
@@ -227,17 +221,26 @@ Func _GetVisibleWindows($GetText = False)
 		$aWinList[$i][$NewCol] = $Desc
 	Next
 
-
-	; Add TESTING
+	; Get Arch
 	$NewCol = UBound($aWinList, 2)
 	_ArrayColInsert($aWinList, $NewCol)
-	$aWinList[0][$NewCol] = "Testing"
+	$aWinList[0][$NewCol] = "Arch"
 	For $i = 1 To $aWinList[0][0]
-		;$aWinList[$i][$NewCol] = _WinAPI_GetParent($aWinList[$i][1])
-		;$aWinList[$i][$NewCol] = _WinAPI_GetParentProcess($aWinList[$i][4])
-		;$aWinList[$i][$NewCol] = _WinAPI_GetProcessUser($aWinList[$i][4])[0]
+		Local $sArch
+		If _WinAPI_GetBinaryType($aWinList[$i][6]) = 1 Then
+			Switch @extended
+				Case $SCS_32BIT_BINARY
+					$sArch = "32-bit"
+				Case $SCS_64BIT_BINARY
+					$sArch = "64-bit"
+				Case $SCS_DOS_BINARY
+					$sArch = "DOS"
+				Case $SCS_WOW_BINARY
+					$sArch = "16-bit"
+			EndSwitch
+		EndIf
+		$aWinList[$i][$NewCol] = $sArch
 	Next
-
 
 	; Get Window's text and add to the array.
 	$NewCol = UBound($aWinList, 2)
@@ -1831,68 +1834,88 @@ Func _IsIP($sIP, $P_strict = 0)
 	Return 1 ;;string is a ip
 EndFunc   ;==>_IsIP
 ;==============================================================================================
-; Description:		FileRegister($ext, $cmd, $verb[, $def[, $icon = ""[, $desc = ""]]])
+; Description:		_FileRegister($FileExt, $Command, $Verb[, $Default = Default[, $Icon = Default[, $Description = Default]]])
 ;					Registers a file type in Explorer
-; Parameter(s):		$ext - 	File Extension without period eg. "zip"
-;					$cmd - 	Program path with arguments eg. '"C:\test\testprog.exe" "%1"'
-;							(%1 is 1st argument, %2 is 2nd, etc.)
-;					$verb - Name of action to perform on file
-;							eg. "Open with ProgramName" or "Extract Files"
-;					$def - 	Action is the default action for this filetype
-;							(1 for true 0 for false)
-;							If the file is not already associated, this will be the default.
-;					$icon - Default icon for filetype including resource # if needed
-;							eg. "C:\test\testprog.exe,0" or "C:\test\filetype.ico"
-;					$desc - File Description eg. "Zip File" or "ProgramName Document"
+; Parameter(s):		$FileExt - 	File Extension without period eg. "zip"
+;					$Command - 	Program path with arguments eg. '"C:\test\testprog.exe" "%1"'
+;								(%1 is 1st argument, %2 is 2nd, etc.)
+;								Setting $Command to an empty string "" will skip setting that key and return the value of an existing key
+;					$Verb 	- 	Name of action to perform on file
+;								eg. "Open with ProgramName" or "Extract Files"
+;					$Default - 	(True/False) The verb will be the default for this filetype
+;								If the file is not already associated, this will be the default.
+;								Setting default to False will return the current default verb
+;					$Icon - 	Default icon for filetype including resource # if needed
+;								eg. "C:\test\testprog.exe,0" or "C:\test\filetype.ico"
+;					$Description - File Description eg. "Zip File" or "ProgramName Document"
+; Returns:  		Returns the new verb is setting that key was a success, the old verb if it was not
+;					Sets @extended to the new command if setting that key was a success or the old command if not
+; Notes:
+; Author:
+; Date/Version:   	10/15/2014  --  v2.0.4
 ;===============================================================================================
-Func _FileRegister($ext, $cmd, $verb, $def = 0, $icon = "", $Desc = "")
-	$loc = RegRead("HKCR\." & $ext, "")
-	If @error Then
-		RegWrite("HKCR\." & $ext, "", "REG_SZ", $ext & "file")
-		$loc = $ext & "file"
+Func _FileRegister($FileExt, $Command, $Verb = Default, $Default = Default, $Icon = Default, $Description = Default)
+	; FileExt is a key representing the file extention and specifying which FileType to use for that extention
+	; FileType is a key containing various properties and actions (verbs) that can be used for files of this type
+
+	If $Default = Default Then $Default = False ; Do not make the new verb the default
+	If $Command = Default Or $Command = "" Then $Command = "" ; Allow use of Default to be treated as ""
+
+	; Remove the "." if it was included
+	If StringLeft($FileExt, 1) = "." Then $FileExt = StringTrimLeft($FileExt, 1)
+
+	; Get the current FileType for the extention
+	Local $FileType = RegRead("HKCR\." & $FileExt, "")
+	If @error And $Verb = Default Then
+		; If FileExt doesn't exist but a verb wasn't specified then we have nothing to do.
+		Return SetError(1, 0, "")
+	ElseIf @error Then ; The extention doesn't exist so create it
+		RegWrite("HKCR\." & $FileExt, "", "REG_SZ", $FileExt & "file") ; Create a new FileType to use with it
+		$FileType = $FileExt & "file" ; Make the new Verb default since it doesn't have one
+		$Default = True
 	EndIf
-	$curdesc = RegRead("HKCR\" & $loc, "")
-	If @error Then
-		If $Desc <> "" Then
-			RegWrite("HKCR\" & $loc, "", "REG_SZ", $Desc)
-		EndIf
-	Else
-		If $Desc <> "" And $curdesc <> $Desc Then
-			RegWrite("HKCR\" & $loc, "", "REG_SZ", $Desc)
-			RegWrite("HKCR\" & $loc, "olddesc", "REG_SZ", $curdesc)
-		EndIf
-		If $curdesc = "" And $Desc <> "" Then
-			RegWrite("HKCR\" & $loc, "", "REG_SZ", $Desc)
-		EndIf
+
+	; Verb keys can't have spaces, still use $Verb for a display name
+	$VerbKey = StringReplace($Verb, " ", "")
+
+	; Set the default verb to use
+	Local $CurrentDefaultVerb = RegRead("HKCR\" & $FileType & "\shell", "")
+	If $Default Then
+		If Not @error Then RegWrite("HKCR\" & $FileType & "\shell", "oldverb", "REG_SZ", $CurrentDefaultVerb) ; Backup default verb
+		RegWrite("HKCR\" & $FileType & "\shell", "", "REG_SZ", $VerbKey) ; Make new verb the default
+		If Not @error Then $CurrentDefaultVerb = $VerbKey
 	EndIf
-	$curverb = RegRead("HKCR\" & $loc & "\shell", "")
-	If @error Then
-		If $def = 1 Then
-			RegWrite("HKCR\" & $loc & "\shell", "", "REG_SZ", $verb)
-		EndIf
-	Else
-		If $def = 1 Then
-			RegWrite("HKCR\" & $loc & "\shell", "", "REG_SZ", $verb)
-			RegWrite("HKCR\" & $loc & "\shell", "oldverb", "REG_SZ", $curverb)
-		EndIf
-	EndIf
-	$curcmd = RegRead("HKCR\" & $loc & "\shell\" & $verb & "\command", "")
-	If Not @error Then
-		RegRead("HKCR\" & $loc & "\shell\" & $verb & "\command", "oldcmd")
-		If @error Then
-			RegWrite("HKCR\" & $loc & "\shell\" & $verb & "\command", "oldcmd", "REG_SZ", $curcmd)
-		EndIf
-	EndIf
-	RegWrite("HKCR\" & $loc & "\shell\" & $verb & "\command", "", "REG_SZ", $cmd)
-	If $icon <> "" Then
-		$curicon = RegRead("HKCR\" & $loc & "\DefaultIcon", "")
-		If @error Then
-			RegWrite("HKCR\" & $loc & "\DefaultIcon", "", "REG_SZ", $icon)
-		Else
-			RegWrite("HKCR\" & $loc & "\DefaultIcon", "", "REG_SZ", $icon)
-			RegWrite("HKCR\" & $loc & "\DefaultIcon", "oldicon", "REG_SZ", $curicon)
+
+	If $Verb <> Default Then
+		; The display name for the verb
+		Local $CurrentVerbName = RegRead("HKCR\" & $FileType & "\shell\" & $VerbKey, "")
+		If Not @error Then RegWrite("HKCR\" & $FileType & "\shell\" & $VerbKey, "oldname", "REG_SZ", $CurrentVerbName) ; Backup verb name
+		RegWrite("HKCR\" & $FileType & "\shell\" & $VerbKey, "", "REG_SZ", $Verb) ; Set the display name
+
+		; Command is a subkey reprenseting what happens when a particular verb is selected
+		Local $CurrentCommand = RegRead("HKCR\" & $FileType & "\shell\" & $VerbKey & "\command", "")
+		If $Command <> Default Then
+			If Not @error Then RegWrite("HKCR\" & $FileType & "\shell\" & $VerbKey & "\command", "oldcmd", "REG_SZ", $CurrentCommand) ; Backup command
+			RegWrite("HKCR\" & $FileType & "\shell\" & $VerbKey & "\command", "", "REG_SZ", $Command) ; Set the command
+			If Not @error Then $CurrentCommand = $Command
 		EndIf
 	EndIf
+
+	; Specify the icon to be used for the FileType
+	If $Icon <> Default Then
+		Local $CurrentIcon = RegRead("HKCR\" & $FileType & "\DefaultIcon", "")
+		If @error Then RegWrite("HKCR\" & $FileType & "\DefaultIcon", "oldicon", "REG_SZ", $CurrentIcon) ; Backup icon
+		RegWrite("HKCR\" & $FileType & "\DefaultIcon", "", "REG_SZ", $Icon)
+	EndIf
+
+	; Set the description for the the file type
+	If $Description <> Default Then
+		Local $CurrentDescription = RegRead("HKCR\" & $FileType, "")
+		If @error Then RegWrite("HKCR\" & $FileType, "olddesc", "REG_SZ", $CurrentDescription) ; Backup description
+		RegWrite("HKCR\" & $FileType, "", "REG_SZ", $Description) ; Write the description
+	EndIf
+
+	Return SetError(0, $CurrentCommand, $CurrentDefaultVerb)
 EndFunc   ;==>_FileRegister
 ;===============================================================================
 ; Description:		FileUnRegister($ext, $verb)
@@ -1901,7 +1924,7 @@ EndFunc   ;==>_FileRegister
 ;					$verb - Name of file action to remove
 ;							eg. "Open with ProgramName" or "Extract Files"
 ;===============================================================================
-Func _FileUnRegister($ext, $verb)
+Func _FileUnRegister($ext, $Verb)
 	$loc = RegRead("HKCR\." & $ext, "")
 	If Not @error Then
 		$oldicon = RegRead("HKCR\" & $loc & "\shell", "oldicon")
@@ -1922,55 +1945,15 @@ Func _FileUnRegister($ext, $verb)
 		Else
 			RegDelete("HKCR\" & $loc, "")
 		EndIf
-		$oldcmd = RegRead("HKCR\" & $loc & "\shell\" & $verb & "\command", "oldcmd")
+		$oldcmd = RegRead("HKCR\" & $loc & "\shell\" & $Verb & "\command", "oldcmd")
 		If Not @error Then
-			RegWrite("HKCR\" & $loc & "\shell\" & $verb & "\command", "", "REG_SZ", $oldcmd)
-			RegDelete("HKCR\" & $loc & "\shell\" & $verb & "\command", "oldcmd")
+			RegWrite("HKCR\" & $loc & "\shell\" & $Verb & "\command", "", "REG_SZ", $oldcmd)
+			RegDelete("HKCR\" & $loc & "\shell\" & $Verb & "\command", "oldcmd")
 		Else
-			RegDelete("HKCR\" & $loc & "\shell\" & $verb)
+			RegDelete("HKCR\" & $loc & "\shell\" & $Verb)
 		EndIf
 	EndIf
 EndFunc   ;==>_FileUnRegister
-;===============================================================================
-; Function:		_SetDefaultContextItem
-; Purpose:		Set default context item for file type
-; Syntax:		_SetDefaultContextItem($sExtention)
-; Parameters:	$sExtention = File extention
-;				$sVerb = Verb to set as default
-; Returns:  	Success - 1
-;				Failure - 0
-; Notes:
-; Author:
-; Date/Version:   	10/15/2014  --  v1.1
-;===============================================================================
-Func _SetDefaultContextItem($sExtention, $sVerb)
-	Local $sRegistryLocation = RegRead("HKCR\." & $sExtention, "")
-	If @error Then Return 0
-
-	RegWrite("HKCR\" & $sRegistryLocation & "\shell", "", "REG_SZ", $sVerb)
-	If @error Then Return 0
-	Return 1
-EndFunc   ;==>_SetDefaultContextItem
-;===============================================================================
-; Function:		_GetDefaultContextItem
-; Purpose:		Get default context item for file type
-; Syntax:		_GetDefaultContextItem($sExtention)
-; Parameters:	$sExtention = File extention
-; Returns:  	Success - Current Verb
-;				Failure - 0
-; Notes:
-; Author:
-; Date/Version:   	10/15/2014  --  v1.1
-;===============================================================================
-Func _GetDefaultContextItem($sExtention)
-	Local $sRegistryLocation = RegRead("HKCR\." & $sExtention, "")
-	If @error Then Return 0
-
-	Local $sVerb = RegRead("HKCR\" & $sRegistryLocation & "\shell", "")
-	If @error Then Return 0
-
-	Return $sVerb
-EndFunc   ;==>_GetDefaultContextItem
 ;===============================================================================
 ; Function:		_GetBroadcast
 ; Purpose:		Get the UDP broadcast ip address for the adapter address specified
