@@ -12,70 +12,51 @@
 ; By JohnMC - JohnsCS.com - https://github.com/jmclaren7/autoit-scripts
 
 #include <ComboConstants.au3>
-;#include <EditConstants.au3>
-;#include <MsgBoxConstants.au3>
-;#include <StaticConstants.au3>
 #include <StructureConstants.au3> ;
-;#include <ButtonConstants.au3>
-;#include <GUIConstantsEx.au3>
-;#include <ListViewConstants.au3>
+#include <GuiComboBox.au3>
 #include <GuiListView.au3> ;
 #include <GuiImageList.au3>
-;#include <WindowsConstants.au3>
-;#include <File.au3>
-;#include <WinAPIShellEx.au3>
-;#include <WinAPIRes.au3>
-
 #include "CommonFunctions.au3"
 
-
 Global $Title = "Icon-Viewer"
-;Global $ExportPath = @ScriptDir & "\Icons"
-;If Not FileExists($ExportPath) Then DirCreate($ExportPath)
-
-Global $ListViewColumns = 5
-
+Global $IconGUI, $IconListView
+_Log(@SystemDir)
 
 ; ==== GUI setup
-Global $IconGUI = GUICreate($Title, 800, 600, -1, -1)
-GUISetIcon("C:\Windows\System32\Shell32.dll", -327, $IconGUI)
-Global $IconListView = GUICtrlCreateListView("", 1, 50, 798, 550, BitOR($GUI_SS_DEFAULT_LISTVIEW, $LVS_NOCOLUMNHEADER, $LVS_NOSORTHEADER, $LVS_NOLABELWRAP, $WS_VSCROLL))  ; , $LVS_ALIGNLEFT
-_GUICtrlListView_SetView ( $IconListView, 2)
-;_GUICtrlListView_SetExtendedListViewStyle($IconListView, BitOr($LVS_EX_GRIDLINES, $LVS_EX_BORDERSELECT, $LVS_EX_SUBITEMIMAGES)) ; This is done seperately from GUICtrlCreateListView in order to fix an issue with the listview border
-$IconFileCombo = GUICtrlCreateCombo("shell32.dll", 12, 14, 320, 25, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_DISABLENOSCROLL, $CBS_DROPDOWN))
-GUICtrlSetData($IconFileCombo, "shell32.dll|imageres.dll", "shell32.dll")
-$BrowseButton = GUICtrlCreateButton('Browse', 340, 10, 60, 28)
+$IconGUI = GUICreate($Title, 801, 587, -1, -1, BitOR($GUI_SS_DEFAULT_GUI,$WS_MAXIMIZEBOX,$WS_SIZEBOX,$WS_THICKFRAME,$WS_TABSTOP))
+$IconListView = GUICtrlCreateListView("", 1, 34, 798, 550, BitOR($GUI_SS_DEFAULT_LISTVIEW,$LVS_NOCOLUMNHEADER,$LVS_NOSORTHEADER,$LVS_NOLABELWRAP,$WS_VSCROLL))
+GUICtrlSendMsg(-1, $LVM_SETCOLUMNWIDTH, 0, 50)
+GUICtrlSetResizing(-1, $GUI_DOCKLEFT+$GUI_DOCKRIGHT+$GUI_DOCKTOP+$GUI_DOCKBOTTOM)
+$IconListView_0 = GUICtrlCreateListViewItem("", $IconListView)
+$IconFileCombo = GUICtrlCreateCombo("", 4, 6, 408, 25)
+GUICtrlSetResizing(-1, $GUI_DOCKLEFT+$GUI_DOCKTOP+$GUI_DOCKWIDTH+$GUI_DOCKHEIGHT)
+$BrowseButton = GUICtrlCreateButton("Browse", 420, 2, 60, 28)
+GUICtrlSetResizing(-1, $GUI_DOCKLEFT+$GUI_DOCKTOP+$GUI_DOCKWIDTH+$GUI_DOCKHEIGHT)
+
 $ContextMenu = GUICtrlCreateContextMenu($IconListView)
-Local $SaveContext = GUICtrlCreateMenuItem("Save...", $ContextMenu)
+$SaveContext = GUICtrlCreateMenuItem("Save...", $ContextMenu)
+GUISetIcon("C:\Windows\System32\Shell32.dll", -327, $IconGUI)
 
-
-
-
+_GUICtrlListView_SetView ( $IconListView, 2)
 GUIRegisterMsg($WM_NOTIFY, "WM_NOTIFY")
 
-; ==== Add columns
-For $i = 1 To $ListViewColumns
-	_GUICtrlListView_AddColumn($IconListView, $i, Ceiling((798 - 30) / $ListViewColumns), 0, -1)
-Next
+$EnterDummy = GUICtrlCreateDummy()
+Local $aAccelKeys[1][2]
+$aAccelKeys[0][0] = "{ENTER}"
+$aAccelKeys[0][1] = $EnterDummy
+GUISetAccelerators($aAccelKeys)
 
 GUISetState(@SW_SHOW)
 
-; ==== List any DLLs in system directory that have icons
-;~ $aIconFiles = _FileListToArray(@SystemDir, "*.DLL")
-;~ For $i = 1 To $aIconFiles[0]
-;~ 	If _WinAPI_ExtractIconEx($aIconFiles[$i], -1, 0, 0, 0) > 0 Then
-;~ 			ConsoleWrite(@CRLF & "Icons found: " & $aIconFiles[$i])
-;~ 			GUICtrlSetData($IconFileCombo, $aIconFiles[$i])
-;~ 			;GUICtrlSetData($Progress, 100 - ($i / $aIconFiles[0] * 100))
-;~ 	EndIf
-;~ Next
+Local $tInfo
+_GUICtrlComboBox_GetComboBoxInfo($IconFileCombo, $tInfo)
+Local $hCombo = DllStructGetData($tInfo, "hEdit")
 
+GUICtrlSetData($IconFileCombo, "Shell32.dll|Imageres.dll|wmploc.dll|netshell.dll|DDORes.dll", "Shell32.dll")
 
 _Log("GUI Ready: " & @ScriptName)
 
-; ==== Add Icons
-_LoadIcons(@SystemDir & "\Shell32.dll")
-
+_LoadIcons(GUICtrlRead($IconFileCombo))
 
 _Log("Done")
 
@@ -89,16 +70,29 @@ While 1
 
 		Case $BrowseButton
 			_Log("$BrowseButton")
+			$NewIconFile = FileOpenDialog($Title, "", "Icon Files (*.exe;*.dll;*.ico)|All (*.*)", 1, "", $IconGUI)
+			If Not @error Then _LoadIcons($NewIconFile)
 
 		Case $IconListView
 			_Log("$IconListView")
 
 		Case $IconFileCombo
 			_Log("$IconFileCombo")
+			_LoadIcons(GUICtrlRead($IconFileCombo))
+
+		Case $EnterDummy
+			_Log("$EnterDummy")
+			$Focus = ControlGetHandle($IconGUI, "", ControlGetFocus ($IconGUI))
+
+			If $Focus = $hCombo Then
+				_Log("$IconFileCombo")
+				_LoadIcons(GUICtrlRead($IconFileCombo))
+
+			EndIf
 
 		Case $SaveContext
 			_Log("$SaveContext")
-			_GUICtrlListView_GetSelectedIndices($IconListView)
+			_Log(_GUICtrlListView_GetSelectedIndices($IconListView))
 
 	EndSwitch
 
@@ -108,13 +102,21 @@ Wend
 
 Func _LoadIcons($IconFile)
 	_Log("_LoadIcons: " & $IconFile)
-
 	_Timer()
+
+	; Check if the file exists, if it doesn't check the system32 folder
+	If Not FileExists($IconFile) Then
+		$IconFile = @SystemDir & "\" & $IconFile
+		If Not FileExists($IconFile) Then Return SetError(1)
+	EndIf
+
+	; Remove all existing list view items
+	_GUICtrlListView_DeleteAllItems($IconListView)
 
 	If Not FileExists($IconFile) Then Return SetError(1)
 
 	; Create the image list, this is attached to the listview control later
-	$hImageList = _GUIImageList_Create(32, 32, 5, 3, 256, 512)
+	Local $hImageList = _GUIImageList_Create(32, 32, 5, 3, 256, 512)
 
 	; Get icon count and names from file
 	Local $aIconNames = _WinAPI_EnumResourceNames($IconFile, BitOr($RT_GROUP_ICON,$RT_GROUP_CURSOR)) ; BitOr($RT_GROUP_ICON,$RT_GROUP_CURSOR)
@@ -149,28 +151,13 @@ Func _Exit()
 	_Log("_Exit")
 EndFunc
 
-;~ Func _SaveRow($sDLLName)
-;~ 	Local $iCols, $iRows, $iIcons
-;~ 	WinSetTitle($hGui, "", $sTitel & $sDLLName)
-;~ 	For $iRows = 0 To _GUICtrlListView_GetItemCount($listview) - 1
-;~ 		If _GUICtrlListView_GetItemChecked($listview, $iRows) Then
-;~ 			$iIcons = $iRows * 16 - 1
-;~ 			For $iCols = 1 To 16
-;~ 				$iIcons += 1
-;~ 				_SaveToFile($sDLLName, $iIcons, $iSize, $iSize)
-;~ 				; _SaveToFile($sDLLName, $iIcons, 48, 48)	;comment out and every icon in loop is saved in 48x48
-;~ 			Next
-;~ 		EndIf
-;~ 	Next
-;~ EndFunc   ;==>_SaveRow
 
 
-;~ Func _SaveToFile($sDLLName, $iIconId, $iWidth = 32, $iHeight = 32)
-;~ 	ConsoleWrite($sDLLName & @TAB & '|' & $iIconId & '|' & @TAB & $iWidth & '|' & $iHeight & @CRLF)
-;~ 	Local $sFile = $sIconPath & '\' & StringReplace($sDLLName, '.dll', '_') & StringReplace($iIconId & '.ico', ' ', '')
+;~ Func _SaveToFile($sFile, $iIconId, $iWidth = 32, $iHeight = 32)
+;~ 	Local $sOutputFile = $sIconPath & '\' & StringReplace($sFile, '.dll', '_') & StringReplace($iIconId & '.ico', ' ', '')
 ;~ 	ConsoleWrite($sFile & @CRLF)
-;~ 	Local $hIcon = _WinAPI_ShellExtractIcon(@SystemDir & '\' & $sDLLName, $iIconId, $iWidth, $iHeight)
-;~ 	_WinAPI_SaveHICONToFile($sFile, $hIcon)
+;~ 	Local $hIcon = _WinAPI_ShellExtractIcon($sFile, $iIconId, $iWidth, $iHeight)
+;~ 	_WinAPI_SaveHICONToFile($sOutputFile, $hIcon)
 ;~ 	;ShellExecute($sFile)
 ;~ 	_WinAPI_DestroyIcon($hIcon)
 ;~ EndFunc   ;==>_SaveToFile
