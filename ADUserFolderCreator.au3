@@ -93,9 +93,12 @@ While 1
 		;Skip empty
 		If $User = "" Then ContinueLoop
 
+		;Skip if HealthMailbox
+		If StringInStr($User, "HealthMailbox") Then ContinueLoop
+
 		;Skip if special characters
 		For $r=1 to $aExcludeCharacters[0]
-			If StringInStr($User, $aExcludeCharacters[$i]) Then
+			If StringInStr($User, $aExcludeCharacters[$r]) Then
 				_ConsoleWrite($User & " - skipped because special character", 2)
 				ContinueLoop 2
 			endif
