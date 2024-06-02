@@ -11,6 +11,7 @@
 #include <File.au3>
 #include <GUIConstantsEx.au3>
 #include <GuiEdit.au3>
+#include <GuiListBox.au3>
 #include <APIFilesConstants.au3>
 #include <Security.au3>
 #include <String.au3>
@@ -20,6 +21,28 @@
 #include <WinAPISysWin.au3>
 #include <WindowsConstants.au3>
 ;===============================================================================
+
+; #FUNCTION# ====================================================================================================================
+; Name ..........: _RandomString
+; Description ...: Generates a random string of numbers and characters
+; Syntax ........: _RandomString($Min, $Max[, $Chars = Default])
+; Parameters ....: $Min                 - Minimum string length.
+;                  $Max                 - Maximum string length.
+;                  $Chars               - [optional] String of characters to choose from. Default is all numbers and letters (upper and lower).
+; Return values .: A random string string
+; Author ........: JohnMC - JohnsCS.com
+; Modified ......: 05/11/2024
+; ===============================================================================================================================
+Func _RandomString($iMin, $iMax, $sChars = Default)
+	If $sChars = Default Then $sChars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+	Local $sReturn, $aChars = StringSplit($sChars, '')
+
+	For $i = 1 To Random($iMin, $iMax, 1)
+		$sReturn &= $aChars[Random(1, $aChars[0], 1)]
+	Next
+
+	Return $sReturn
+EndFunc   ;==>_RandomString
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _ListSelect
 ; Description ...: Creates a list select box
@@ -27,11 +50,11 @@
 ; Parameters ....:
 ; Return values .: The text of the selected item, @extended contains the index of the slected item
 ; Author ........: JohnMC - JohnsCS.com
-; Modified ......: 04/24/2024  --  v1.0
+; Modified ......: 04/24/2024
 ; ===============================================================================================================================
 Func _ListSelect($aList, $sTitle = "", $sMessage = "", $iDefaultIndex = 1, $sIcon = "", $iWidth = 400, $iHieght = 175)
-	Local $IconFile = StringLeft($sIcon,StringInStr($sIcon, ",", 0, -1) - 1)
-	Local $IconID = Number(StringTrimLeft($sIcon,StringInStr($sIcon, ",", 0, -1)))
+	Local $IconFile = StringLeft($sIcon, StringInStr($sIcon, ",", 0, -1) - 1)
+	Local $IconID = Number(StringTrimLeft($sIcon, StringInStr($sIcon, ",", 0, -1)))
 
 	Local $ListSelectGUI = GUICreate($sTitle, $iWidth, $iHieght, -1, -1)
 	Local $ListSelectList1 = GUICtrlCreateList("", 70, 48, $iWidth - 90, $iHieght - 90, -1, 0)
@@ -64,7 +87,7 @@ Func _ListSelect($aList, $sTitle = "", $sMessage = "", $iDefaultIndex = 1, $sIco
 		EndSwitch
 		Sleep(10)
 	WEnd
-EndFunc
+EndFunc   ;==>_ListSelect
 ; #FUNCTION# ====================================================================================================================
 ; Name ..........: _Timer
 ; Description ...: Creates a quick to use timer
@@ -371,8 +394,8 @@ EndFunc   ;==>IsActivated
 ; Name ..........: _FileModifiedAge
 ; Description ...:
 ; Syntax ........: _FileModifiedAge($sFile)
-; Parameters ....: $sFile               - a string value.
-; Return values .: None
+; Parameters ....: $sFile - Path to a file
+; Return values .: File age in miliseconds
 ; Author ........: AutoIT Forum, modified by JohnMC - JohnsCS.com
 ; Date/Version ..: 11/15/2023  --  v1.1
 ; ===============================================================================================================================
@@ -549,12 +572,12 @@ EndFunc   ;==>_StringExtract
 ; User Calltip:     GetUnixTimeStamp() (required: <_AzUnixTime.au3>)
 ;
 ;===============================================================================
-Func _GetUnixTimeStamp($year = 0, $mon = 0, $days = 0, $hour = 0, $min = 0, $sec = 0)
+Func _GetUnixTimeStamp($year = 0, $mon = 0, $days = 0, $hour = 0, $Min = 0, $sec = 0)
 	If $year = 0 Then $year = Number(@YEAR)
 	If $mon = 0 Then $mon = Number(@MON)
 	If $days = 0 Then $days = Number(@MDAY)
 	If $hour = 0 Then $hour = Number(@HOUR)
-	If $min = 0 Then $min = Number(@MIN)
+	If $Min = 0 Then $Min = Number(@MIN)
 	If $sec = 0 Then $sec = Number(@SEC)
 	Local $NormalYears = 0
 	Local $LeepYears = 0
@@ -570,7 +593,7 @@ Func _GetUnixTimeStamp($year = 0, $mon = 0, $days = 0, $hour = 0, $min = 0, $sec
 	For $i = 1 To $mon - 1 Step +1
 		$MonNum = $MonNum + _LastDayInMonth($year, $i)
 	Next
-	Return $yearNum + ($MonNum * 24 * 3600) + (($days - 1) * 24 * 3600) + $hour * 3600 + $min * 60 + $sec
+	Return $yearNum + ($MonNum * 24 * 3600) + (($days - 1) * 24 * 3600) + $hour * 3600 + $Min * 60 + $sec
 EndFunc   ;==>_GetUnixTimeStamp
 
 ;===============================================================================
@@ -1137,7 +1160,7 @@ Func _Log($sMessage, $iLevel = Default, $bOverWriteLast = Default)
 
 	; Defaults
 	If $iLevel = Default Then $iLevel = 1
-	if $bOverWriteLast = Default Then $bOverWriteLast = False
+	If $bOverWriteLast = Default Then $bOverWriteLast = False
 
 	; Global options
 	Global $LogLevel, $LogTitle, $LogWindowStart, $LogWindowSize, $LogFullPath, $LogFileMaxSize, $LogFlushAlways
@@ -1198,7 +1221,7 @@ Func _Log($sMessage, $iLevel = Default, $bOverWriteLast = Default)
 
 			EndIf
 			_GUICtrlEdit_AppendText($_hLogEdit, @CRLF & $sLogLine)
-			_GUICtrlEdit_LineScroll($_hLogEdit, - StringLen($sLogLine), _GUICtrlEdit_GetLineCount($_hLogEdit))
+			_GUICtrlEdit_LineScroll($_hLogEdit, -StringLen($sLogLine), _GUICtrlEdit_GetLineCount($_hLogEdit))
 			_GUICtrlEdit_EndUpdate($_hLogEdit)
 		EndIf
 	EndIf
