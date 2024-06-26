@@ -1,7 +1,8 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
-#AutoIt3Wrapper_Icon=..\..\..\Google Drive\Autoit\_Icon.ico
+#AutoIt3Wrapper_Icon=_Icon.ico
+#AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Description=OpenFolderOnChange
-#AutoIt3Wrapper_Res_Fileversion=1.0.0.7
+#AutoIt3Wrapper_Res_Fileversion=1.0.0.10
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
 #AutoIt3Wrapper_Res_Language=1033
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
@@ -11,33 +12,36 @@
 #include <Array.au3>
 
 
-OnAutoItExitRegister ("_Exit")
+OnAutoItExitRegister("_Exit")
 
 _ConsoleWrite("Start")
 
-Opt("TrayMenuMode", 1+2)
+Opt("TrayMenuMode", 1 + 2)
 Opt("TrayOnEventMode", 1)
 
 Global $SettingsFile = @AppDataDir & "\OpenFolderOnChange.ini"
 
-Global $Title = IniRead($SettingsFile,"settings", "title", "default")
-_ConsoleWrite("INI Value: "&$Title)
+Global $Title = IniRead($SettingsFile, "settings", "title", "default")
+_ConsoleWrite("INI Value: " & $Title)
 If $Title = "default" Then
 	$Title = "Open Folder On Change"
-	IniWrite($SettingsFile,"settings", "title", $Title)
-Endif
+	IniWrite($SettingsFile, "settings", "title", $Title)
+EndIf
 
-Global $MonitorFolder = IniRead($SettingsFile,"settings", "monitorfolder", "default")
-_ConsoleWrite("INI Value: "&$MonitorFolder)
-If $MonitorFolder = "default" Then _PromptSetup()
+Global $MonitorFolder = IniRead($SettingsFile, "settings", "monitorfolder", "default")
+_ConsoleWrite("INI Value: " & $MonitorFolder)
+If $MonitorFolder = "default" Then
+	While Not _PromptSetup()
+	WEnd
+EndIf
 
-TrayCreateItem("  "&$Title)
-TrayItemSetState (-1, 128)
+TrayCreateItem("   " & $Title)
+TrayItemSetState(-1, 128)
 TrayCreateItem("")
 $iSettings = TrayCreateMenu("Settings")
-$tSetFolder = TrayCreateItem("Select Folder",$iSettings)
+$tSetFolder = TrayCreateItem("Select Folder", $iSettings)
 TrayItemSetOnEvent(-1, "_PromptSetup")
-$tSetFolder = TrayCreateItem("Open Settings INI",$iSettings)
+$tSetFolder = TrayCreateItem("Open Settings INI", $iSettings)
 TrayItemSetOnEvent(-1, "_OpenINI")
 TrayCreateItem("")
 $tOpenFolder = TrayCreateItem("Open Folder")
@@ -46,7 +50,7 @@ TrayCreateItem("")
 $tExit = TrayCreateItem("Exit")
 TrayItemSetOnEvent(-1, "_Exit")
 
-TraySetToolTip ($Title&@CRLF&$MonitorFolder)
+TraySetToolTip($Title & @CRLF & $MonitorFolder)
 
 $LastCount = -1
 Local $aLastFiles[0]
@@ -60,15 +64,15 @@ While 1
 		Local $aFiles[1]
 		$aFiles[0] = 0
 		$ListError = 0
-	Endif
+	EndIf
 
 
 	If Not $ListError Then
 		$Count = $aFiles[0]
-		_ArrayDelete ( $aFiles, 0)
-		_ConsoleWrite("Count "&$Count)
+		_ArrayDelete($aFiles, 0)
+		_ConsoleWrite("Count " & $Count)
 
-		If $Count > $LastCount AND $LastCount <> -1 Then
+		If $Count > $LastCount And $LastCount <> -1 Then
 			_ConsoleWrite("Count Increased")
 			$aDiff = _ArraySubtract($aFiles, $aLastFiles)
 
@@ -80,12 +84,12 @@ While 1
 		$aLastFiles = $aFiles
 
 	Else
-		_ConsoleWrite("_FileListToArray Error ("&@error&")")
+		_ConsoleWrite("_FileListToArray Error (" & @error & ")")
 
-	Endif
+	EndIf
 
 	Sleep(4000)
-Wend
+WEnd
 
 Func _ArraySubtract($aArray1, $aArray2)
 	For $a = UBound($aArray1) - 1 To 0 Step -1
@@ -98,10 +102,10 @@ Func _ArraySubtract($aArray1, $aArray2)
 	Next
 
 	Return $aArray1
-Endfunc
+EndFunc   ;==>_ArraySubtract
 Func _OpenINI()
 	ShellExecute($SettingsFile)
-EndFunc
+EndFunc   ;==>_OpenINI
 
 
 Func _OpenFolder($sOpenPath = $MonitorFolder, $aNames = 0)
@@ -109,44 +113,44 @@ Func _OpenFolder($sOpenPath = $MonitorFolder, $aNames = 0)
 	If Eval("sOpenPath") = "" Then $sOpenPath = $MonitorFolder
 	If Eval("aNames") = "" Then $aNames = 0
 
-	_WinAPI_ShellOpenFolderAndSelectItems ($sOpenPath, $aNames)
+	_WinAPI_ShellOpenFolderAndSelectItems($sOpenPath, $aNames)
 
-	$FolderName = StringTrimLeft($sOpenPath,StringInStr($sOpenPath,"\",0,-1))
+	$FolderName = StringTrimLeft($sOpenPath, StringInStr($sOpenPath, "\", 0, -1))
 	If WinActive($FolderName) Then
 		Send("{F5}")
 		_ConsoleWrite("Sent F5")
 	EndIf
-EndFunc
+EndFunc   ;==>_OpenFolder
 
 Func _PromptSetup()
-	$NewFolder = FileSelectFolder ( "dialog text", "")
+	$NewFolder = FileSelectFolder("dialog text", "")
 	If $NewFolder <> "" Then
-		_ConsoleWrite("New Value: "&$NewFolder)
-		IniWrite($SettingsFile,"settings", "monitorfolder", $NewFolder)
+		_ConsoleWrite("New Value: " & $NewFolder)
+		IniWrite($SettingsFile, "settings", "monitorfolder", $NewFolder)
 		$MonitorFolder = $NewFolder
-		TraySetToolTip ($MonitorFolder)
+		TraySetToolTip($MonitorFolder)
 		Return $NewFolder
 	Else
-		Return SetError(1,0,False)
+		Return SetError(1, 0, False)
 	EndIf
 
-EndFunc
+EndFunc   ;==>_PromptSetup
 
 Func _Exit()
 
 	Exit
-Endfunc
+EndFunc   ;==>_Exit
 
 Func _FileCount($sTargetDir, $sWildPattern = "*.*")
 	If Not FileExists($sTargetDir) Then Return SetError(1)
 	If $sWildPattern = Default Then $sWildPattern = "*.*"
-	If StringRight($sTargetDir,1) <> "\" Then $sTargetDir &= '\'
+	If StringRight($sTargetDir, 1) <> "\" Then $sTargetDir &= '\'
 
-	Local $hFound , $sNext, $iCount = 0
+	Local $hFound, $sNext, $iCount = 0
 
 	$hFound = FileFindFirstFile($sTargetDir & $sWildPattern)
 
-	If $hfound = -1 Then
+	If $hFound = -1 Then
 		FileClose($hFound)
 		Return $iCount
 	EndIf
@@ -162,7 +166,7 @@ Func _FileCount($sTargetDir, $sWildPattern = "*.*")
 
 	FileClose($hFound)
 	Return $iCount
-EndFunc
+EndFunc   ;==>_FileCount
 
 ;===============================================================================
 ; Function Name:   	_ConsoleWrite()
@@ -178,39 +182,39 @@ EndFunc
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		06/1/2012  --  v1.1
 ;===============================================================================
-Func _ConsoleWrite($sMessage, $iLevel=1, $iSameLine=0)
+Func _ConsoleWrite($sMessage, $iLevel = 1, $iSameLine = 0)
 	Local $hHandle, $sData
 
-	if Eval("LogFilePath")="" Then Global $LogFilePath = StringTrimRight(@ScriptFullPath,4)&"_Log.txt"
-	if Eval("LogFileMaxSize")="" Then Global $LogFileMaxSize = 0
-	if Eval("LogToFile")="" Then Global $LogToFile = False
-	if Eval("LogLevel")="" Then Global $LogLevel = 3 ; The level of message to log - If no level set to 3
-	If $sMessage=="OPENLOG" Then Return ShellExecute($LogFilePath)
+	If Eval("LogFilePath") = "" Then Global $LogFilePath = StringTrimRight(@ScriptFullPath, 4) & "_Log.txt"
+	If Eval("LogFileMaxSize") = "" Then Global $LogFileMaxSize = 0
+	If Eval("LogToFile") = "" Then Global $LogToFile = False
+	If Eval("LogLevel") = "" Then Global $LogLevel = 3 ; The level of message to log - If no level set to 3
+	If $sMessage == "OPENLOG" Then Return ShellExecute($LogFilePath)
 
-	If $iLevel<=$LogLevel then
-		$sMessage=StringReplace($sMessage,@CRLF&@CRLF,@CRLF) ;Remove Double CR
-		If StringRight($sMessage,StringLen(@CRLF))=@CRLF Then $sMessage=StringTrimRight($sMessage,StringLen(@CRLF)) ; Remove last CR
+	If $iLevel <= $LogLevel Then
+		$sMessage = StringReplace($sMessage, @CRLF & @CRLF, @CRLF) ;Remove Double CR
+		If StringRight($sMessage, StringLen(@CRLF)) = @CRLF Then $sMessage = StringTrimRight($sMessage, StringLen(@CRLF)) ; Remove last CR
 
-		Local $sTime=@YEAR&"-"&@MON&"-"&@MDAY&" "&@HOUR&":"&@MIN&":"&@SEC&"> " ; Generate Timestamp
-		$sMessage=StringReplace($sMessage,@CRLF,@CRLF&_StringRepeat(" ",StringLen($sTime))) ; Uses spaces after initial line if string had returns
+		Local $sTime = @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "> " ; Generate Timestamp
+		$sMessage = StringReplace($sMessage, @CRLF, @CRLF & _StringRepeat(" ", StringLen($sTime))) ; Uses spaces after initial line if string had returns
 
-		if NOT $iSameLine then $sMessage=@CRLF&$sTime&$sMessage
+		If Not $iSameLine Then $sMessage = @CRLF & $sTime & $sMessage
 
 		ConsoleWrite($sMessage)
 
 		If $LogToFile Then
-			if $LogFileMaxSize<>0 AND FileGetSize($LogFilePath) > $LogFileMaxSize*1024 then
-				$sMessage=FileRead($LogFilePath) & $sMessage
-				$sMessage=StringTrimLeft($sMessage,StringInStr($sMessage, @CRLF, 0, 5))
-				$hHandle=FileOpen($LogFilePath,2)
+			If $LogFileMaxSize <> 0 And FileGetSize($LogFilePath) > $LogFileMaxSize * 1024 Then
+				$sMessage = FileRead($LogFilePath) & $sMessage
+				$sMessage = StringTrimLeft($sMessage, StringInStr($sMessage, @CRLF, 0, 5))
+				$hHandle = FileOpen($LogFilePath, 2)
 			Else
-				$hHandle=FileOpen($LogFilePath,1)
-			endif
-			FileWrite($hHandle,$sMessage)
+				$hHandle = FileOpen($LogFilePath, 1)
+			EndIf
+			FileWrite($hHandle, $sMessage)
 			FileClose($hHandle)
 
-		endif
-	endif
+		EndIf
+	EndIf
 
 	Return $sMessage
-EndFunc ;==> _ConsoleWrite
+EndFunc   ;==>_ConsoleWrite
