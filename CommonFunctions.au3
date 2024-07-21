@@ -1142,7 +1142,7 @@ Func _ConsoleWrite($sMessage, $iLevel = 1, $iSameLine = 0)
 EndFunc   ;==>_ConsoleWrite
 ;===============================================================================
 ; Function Name:   	_Log()
-; Description:		Console & File Loging
+; Description:		Console log, file log, custom GUI log
 ; Call With:		_Log($Text, $iLevel)
 ; Parameter(s): 	$sMessage - Text to print
 ;					$iLevel - The level *this* message
@@ -1153,9 +1153,9 @@ EndFunc   ;==>_ConsoleWrite
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Last Change:	4/26/2024 -- Fixed global handling, added minimize window on start
 ;					5/6/2024 -- Added $bOverWriteLast, changed the way line returns work on consolewrite
+;					7/21/2024 -- Added script line number
 ;===============================================================================
-; Write to the log, prepend a timestamp, create a custom log GUI
-Func _Log($sMessage, $iLevel = Default, $bOverWriteLast = Default)
+Func _Log($sMessage, $iLevel = Default, $bOverWriteLast = Default, $iCallingLine = @ScriptLineNumber)
 	Static Local $_hLogFile
 
 	; Defaults
@@ -1174,8 +1174,14 @@ Func _Log($sMessage, $iLevel = Default, $bOverWriteLast = Default)
 	If $LogFlushAlways = "" Then Global $LogFlushAlways = False ; Flush log to disk after each update
 
 	Local $LogFileMaxSize_Bytes = $LogFileMaxSize * 1024
-	Local $sTime = @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC & "> "
-	Local $sLogLine = $sTime & $sMessage
+	Local $sTime = @YEAR & "-" & @MON & "-" & @MDAY & " " & @HOUR & ":" & @MIN & ":" & @SEC
+
+	If @Compiled Then
+		Local $sLogLine = $sTime & "> " & $sMessage
+	Else
+		Local $sLogLine = $sTime & " " & $iCallingLine & "> " & $sMessage
+	EndIf
+
 	Local $Minimize = False
 
 	; Do not log this message if $iLevel is greater than global $LogLevel
