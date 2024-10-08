@@ -1068,14 +1068,16 @@ Func _Log($sMessage, $iLevel = Default, $bOverWriteLast = Default, $iCallingLine
 	If $iLevel > $LogLevel Then Return ""
 
 	; Send to console
+	$ExternalConsoleFunction = "_Console_Write"
+
 	If $bOverWriteLast And Not @Compiled Then
 		; Do Nothing
 	ElseIf $bOverWriteLast Then
 		ConsoleWrite(@CR & $sLogLine)
-		Call("_Console_Write", @CR & $sLogLine)
+		Call($ExternalConsoleFunction, @CR & $sLogLine)
 	Else
 		ConsoleWrite(@CRLF & $sLogLine)
-		Call("_Console_Write", @CRLF & $sLogLine)
+		Call($ExternalConsoleFunction, @CRLF & $sLogLine)
 	EndIf
 
 	; Append message to custom GUI if $LogTitle is set
