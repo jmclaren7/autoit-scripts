@@ -20,6 +20,24 @@
 ;===============================================================================
 
 ; #FUNCTION# ====================================================================================================================
+; Name ..........: _Error
+; Description ...: Call _log and MsgBox in one command
+; Syntax ........: _Error($Message[, $iLevel = Default[, $MessageEx = ""]])
+; Parameters ....: $Title               - Window title
+;                  $Message             - Message for MsgBox and _Log.
+;                  $iLevel              - [optional]
+;                  $MessageEx           - [optional] an extra message that will only show in the log.
+; Return values .: MsgBox return value
+; Author ........: JohnMC - JohnsCS.com
+; Modified ......:
+; ===============================================================================================================================
+Func _Error($Title, $Message, $iLevel = Default, $MessageEx = "")
+	If $MessageEx <> "" Then $MessageEx = " - " & $MessageEx
+	_Log($Message & $MessageEx, $iLevel)
+	Return MsgBox(16, $Title, $Message)
+EndFunc
+
+; #FUNCTION# ====================================================================================================================
 ; Name ..........: _RandomString
 ; Description ...: Generates a random string of numbers and characters
 ; Syntax ........: _RandomString($Min, $Max[, $Chars = Default])
@@ -1070,16 +1088,17 @@ Func _Log($sMessage, $iLevel = Default, $bOverWriteLast = Default, $iCallingLine
 	If $iLevel > $LogLevel Then Return ""
 
 	; Send to console
-	Local $ExternalConsoleFunction = "_Console_Write" ; From Console.au3
+	; _Console_Write is from Console.au3
+	#ignorefunc _Console_Write
 
 	If $bOverWriteLast And Not @Compiled Then
 		; Do Nothing
 	ElseIf $bOverWriteLast Then
 		ConsoleWrite(@CR & $sLogLine)
-		Call($ExternalConsoleFunction, @CR & $sLogLine)
+		Call("_Console_Write", @CR & $sLogLine)
 	Else
 		ConsoleWrite(@CRLF & $sLogLine)
-		Call($ExternalConsoleFunction, @CRLF & $sLogLine)
+		Call("_Console_Write", @CRLF & $sLogLine)
 	EndIf
 
 	; Append message to custom GUI if $LogTitle is set
