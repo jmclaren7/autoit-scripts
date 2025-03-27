@@ -158,7 +158,7 @@ Func _Stop()
 	GUICtrlSetState($ButtonStart, $GUI_ENABLE)
 EndFunc
 Func _LogThis($Data)
-	$Log = $Log & _ConsoleWrite($Data)
+	$Log = $Log & @CRLF & _Log($Data)
 	GUICtrlSetData($EditLog, $Log)
 	GUICtrlSendMsg($EditLog, "0xB7", 0, 0)
 	Return $Data
