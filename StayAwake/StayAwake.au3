@@ -13,6 +13,10 @@ $tExit = TrayCreateItem("Exit")
 TrayItemSetOnEvent(-1, "_Exit")
 OnAutoItExitRegister ("_Exit")
 
+If StringInStr(@ScriptName, "[splash]")
+
+
+
 Local $MoveSize[2] = [-2,2]
 
 While 1
