@@ -2,7 +2,7 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=_Icon.ico
 #AutoIt3Wrapper_Change2CUI=n
-#AutoIt3Wrapper_Res_Fileversion=1.0.0.75
+#AutoIt3Wrapper_Res_Fileversion=1.0.0.76
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
 #AutoIt3Wrapper_Res_Language=1033
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
@@ -61,10 +61,14 @@ While 1
 
 	$ExcludeUsers = IniRead($SettingsFileFullPath, "Settings", "ExcludeUsers", "notset")
 	If $ExcludeUsers = "notset" Then IniWrite($SettingsFileFullPath, "Settings", "ExcludeUsers", "")
+	_ConsoleWrite("User exluded: " & $ExcludeUsers)
 
-	$ExcludeCharacters = IniRead($SettingsFileFullPath, "Settings", "ExcludeUsersWithCharacters", "")
+	$DefaultExcludeCharacters = "~!@#$%^&*()_+-$1234567890"
+	$ExcludeCharacters = IniRead($SettingsFileFullPath, "Settings", "ExcludeUsersWithCharacters", $DefaultExcludeCharacters)
+	If $ExcludeCharacters = $DefaultExcludeCharacters Then IniWrite($SettingsFileFullPath, "Settings", "ExcludeUsersWithCharacters", $DefaultExcludeCharacters)
+	_ConsoleWrite("Characters exluded: " & $ExcludeCharacters)
+
 	$aExcludeCharacters = StringSplit($ExcludeCharacters,"")
-	_ConsoleWrite("Characters exluded: "&$aExcludeCharacters[0])
 
 	$PSCommand = 'Get-ADGroupMember \"Domain users\" -recursive | Get-ADUser | Where { $_.Enabled -eq $True} | Select SamAccountName | Format-Table -HideTableHeaders'
 	$PSCommand = 'powershell.exe -nologo -executionpolicy bypass -WindowStyle hidden -noprofile -command "&{' & $PSCommand & '}"'
