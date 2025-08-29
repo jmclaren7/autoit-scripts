@@ -1171,6 +1171,13 @@ Func _Log($sMessage, $iLevel = Default, $bOverWriteLast = Default, $iCallingLine
 	Return $sMessage
 EndFunc   ;==>_Log
 ;===============================================================================
+; Function Name:    _ConsoleWrite()
+; Description:		Alias For _Log()
+;===============================================================================
+Func _ConsoleWrite($sMessage, $iLevel = 1, $iSameLine = 0)
+	Return _Log($sMessage, $iLevel)
+EndFunc
+;===============================================================================
 ; Function Name:    _TimeStamp()
 ; Description:		Returns time since 0 unlike the unknown timestamp behavior of timer_init
 ; Call With:		_TimeStamp([$Flag])
