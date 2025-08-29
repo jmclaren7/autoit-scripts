@@ -1,8 +1,8 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
-#AutoIt3Wrapper_Icon=..\..\..\Google Drive\Autoit\_Icon.ico
+#AutoIt3Wrapper_Icon=_Icon.ico
 #AutoIt3Wrapper_UseUpx=n
 #AutoIt3Wrapper_Res_Description=MeasureRemoteLatency
-#AutoIt3Wrapper_Res_Fileversion=1.0.0.30
+#AutoIt3Wrapper_Res_Fileversion=1.0.0.32
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
 #AutoIt3Wrapper_Res_Language=1033
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
@@ -38,6 +38,7 @@ While 1
 		Case $GUI_EVENT_CLOSE
 			Exit
 		Case $TestButton
+			GUICtrlSetBkColor($Label2, 0x000000)
 			GUICtrlSetData ( $TestButton, "Move Mouse To Remote (4s)")
 			Sleep(4*1000)
 
@@ -99,13 +100,13 @@ While 1
 				_UpdateLog($ColorR&", "&$ColorB&", "&$ColorG)
 			EndIf
 
-			$LatencyTotal = 0
+			$Latency = 0
 			For $i=0 to UBound($aLatency)-1
-				$LatencyTotal = $LatencyTotal + $aLatency[$i]
+				$Latency = $Latency + $aLatency[$i]
 			Next
-			$LatencyAverage = Round($LatencyTotal / UBound($aLatency))
+			If $Latency <> 0 Then $Latency = Round($Latency / UBound($aLatency))
 
-			_UpdateLog("Average: " & $LatencyAverage)
+			_UpdateLog("Average: " & $Latency & "ms")
 
 			GUICtrlSetData ( $TestButton, "Test")
 
