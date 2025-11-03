@@ -135,8 +135,9 @@ Func _TextBox($Title, $Label, $Text = "", $Width = Default, $Height = Default, $
 	GUICtrlSetResizing(-1, $GUI_DOCKRIGHT + $GUI_DOCKBOTTOM + $GUI_DOCKSIZE)
 	Local $hCancel = GUICtrlCreateButton("Cancel", $Width - 85, $Height - 32, 75, 25)
 	GUICtrlSetResizing(-1, $GUI_DOCKRIGHT + $GUI_DOCKBOTTOM + $GUI_DOCKSIZE)
-	GUICtrlSetCursor ($hEdit, -1)
+	GUICtrlSetCursor($hEdit, -1)
 	GUISetState(@SW_SHOW)
+	ControlSend($hGUI, "", $hEdit, "{END}")
 	While 1
 		Local $GUIEvent = GUIGetMsg()
 		Switch $GUIEvent
