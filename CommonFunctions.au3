@@ -18,6 +18,90 @@
 #include <WinAPISysWin.au3>
 #include <WindowsConstants.au3>
 ;===============================================================================
+; Function Name:    _FileSigned
+; Description:		Verifies a file's digital signature
+; Call With:		_FileSigned($File)
+; Parameter(s): 	$File - Path to the file to verify
+; Return Value(s):  On Success - Array containing the status, subject, and thumbprint
+; 					On Failure - 0 (Error code in @error)
+; Author(s):        JohnMC - JohnsCS.com
+; Date/Version:		11/02/2025  --  v1.0
+;===============================================================================
+Func _FileSigned($File = Default)
+	If IsObj($File) And IsInt($File.scriptline) Then
+		Return SetError(1, $File.scriptline, 0)
+	ElseIf $File = Default Or $File = "" Then
+		Return SetError(2, 0, 0)
+	ElseIf Not FileExists($File) Then
+		Return SetError(3, 0, 0)
+	EndIf
+
+	Local $Run = "powershell.exe -nologo -noprofile -command (Get-AuthenticodeSignature -FilePath '" & $File & "') | Select Status,{$_.SignerCertificate.Subject},{$_.SignerCertificate.Thumbprint} | ConvertTo-XML -As String -NoTypeInformation"
+	Local $Result = _RunWait($Run)
+	;_Log($Result)
+
+	Local $oErrorHandler = ObjEvent("AutoIt.Error", "_FileSigned")
+
+	Local $oXML = ObjCreate("Microsoft.XMLDOM")
+	If @error Then
+		Return SetError(4, 0, 0)
+	EndIf
+
+	$oXML.loadXML($Result)
+	If $oXML.parseError.errorCode <> 0 Then
+		;"XML Parse Error? Check this: $oXML.parseError.reason
+		Return SetError(5, 0, 0)
+	EndIf
+	;_Log($oXML.xml)
+
+	Local $aResult[3]
+	$aResult[0] = $oXML.selectSingleNode("/Objects/Object/Property[@Name='Status']").text
+	$aResult[1] = $oXML.selectSingleNode("/Objects/Object/Property[@Name='$_.SignerCertificate.Subject']").text
+	$aResult[2] = $oXML.selectSingleNode("/Objects/Object/Property[@Name='$_.SignerCertificate.Thumbprint']").text
+
+
+	If $aResult[0] = "Valid" Then
+		Return SetError(0, 0, $aResult)
+	Else
+		Return SetError(6, 0, 0)
+	EndIf
+EndFunc
+;===============================================================================
+; Function Name:    _HideDrive
+; Description:		Hide or show a drive from file explorer
+; Call With:		_HideDrive($DriveLetter, $Hide = True)
+; Parameter(s): 	$DriveLetter - Drive letter to hide or show
+;					$Hide - [optional] True to hide, False to show
+; Return Value(s):  None
+; Author(s):        JohnMC - JohnsCS.com
+; Date/Version:		11/02/2025  --  v1.0
+;===============================================================================
+Func _HideDrive($DriveLetter, $Hide = Default)
+	If $Hide = Default Then $Hide = True
+
+    Local $DriveNumber = Asc(StringUpper($DriveLetter)) - Asc("A")
+	Local $ThisMask = BitShift(1, -$DriveNumber)
+
+	; Get the current value of the NoDrives registry key
+	Local $CurrentMask = RegRead("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer", "NoDrives")
+	If @error Then $CurrentMask = 0
+
+	; Calculate the new value based on if we should hide or show the drive
+	If $Hide Then
+		$ThisMask = $CurrentMask + $ThisMask
+	Else
+		$ThisMask = $CurrentMask - $ThisMask
+	EndIf
+
+	; Write the new value to the registry
+	Local $RegWrite = RegWrite("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer", "NoDrives", "REG_DWORD", $ThisMask)
+	If @error Then
+		_Log("Error: Could not hide drive " & $DriveLetter & ": in Explorer. Mask: " & $ThisMask & " Error: " & @error & " Result: " & $RegWrite)
+	Else
+		_Log("Success: Hid drive " & $DriveLetter & ": in Explorer.")
+	EndIf
+EndFunc
+;===============================================================================
 ; Function Name:    _TextBox
 ; Description:		Creates a text box with a label and OK/Cancel buttons
 ; Call With:		_TextBox($Title, $Label, $Text = "", $Width = Default, $Height = Default, $Left = Default, $Top = Default, $Timeout = 0, $HWND = Default)
