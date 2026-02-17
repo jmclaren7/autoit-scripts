@@ -137,7 +137,7 @@ Func _TextBox($Title, $Label, $Text = "", $Width = Default, $Height = Default, $
 	GUICtrlSetResizing(-1, $GUI_DOCKRIGHT + $GUI_DOCKBOTTOM + $GUI_DOCKSIZE)
 	GUICtrlSetCursor($hEdit, -1)
 	GUISetState(@SW_SHOW)
-	ControlSend($hGUI, "", $hEdit, "{END}")
+	ControlSend($hGUI, "", $hEdit, "{LEFT}")
 	While 1
 		Local $GUIEvent = GUIGetMsg()
 		Switch $GUIEvent
@@ -197,7 +197,7 @@ EndFunc   ;==>_RandomString
 ; Description ...: Creates a list select box
 ; Syntax ........: _ListSelect()
 ; Parameters ....:
-; Return values .: The text of the selected item, @extended contains the index of the slected item
+; Return values .: The text of the selected item, @extended contains the index of the selected item
 ; Author ........: JohnMC - JohnsCS.com
 ; Modified ......: 04/24/2024
 ; ===============================================================================================================================
@@ -938,22 +938,47 @@ EndFunc   ;==>_MouseCheck
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		10/31/2025  --  v1.0
 ;===============================================================================
-Func _FieldValue($Text, $Field, $NewValue = Default)
-	If $NewValue = Default Then $NewValue = ""
+Func _FieldValue($Text, $Field, $NewValue = -1)
+	Local $Value = -1
 
 	; Get the current value of the field
 	Local $Result = StringRegExp($Text, "(?i)" & $Field & "\((.*?)\)", 3)
 	If Not @error And UBound($Result) > 0 Then
-		If $NewValue <> "" Then ; If a new value is provided, update the text with the new value
-			$Text = StringRegExpReplace($Text, "(?i)(" & $Field & ")\((.*?)\)", "\1(" & $NewValue & ")")				
-			Return $Text
-		Else ; If no new value is provided, return the current value
-			Return $Result[0]
-		EndIf
-	Else
-		_Log("Error: Could not update text with: " & $Field)
-		Return SetError(1, 0, $Text)
+			$Value = $Result[0]
 	EndIf
+
+	;_Log("Field: " & $Field & "   Text=" & $Text)
+	;_Log("   Current Value: " & $Value)
+	;_Log("   New Value: " & $NewValue)
+
+	If $NewValue <> -1 Then ; If a new value is provided, update or add the field
+		; Update the existing text with the new value
+		Local $Replacement = StringRegExpReplace($Text, "(?i)(" & $Field & ")\((.*?)\)", "\1(" & $NewValue & ")")
+		Local $Error = @error
+		Local $Count = @extended
+		;_Log("   Temp: " & $Replacement & "   Error: " & $Error & "   Extended: " & $Count)
+		If $Error = 0 And $Count > 0 Then
+			$Text = $Replacement
+			If $Count > 1 Then
+				; Remove all but one instance of the field
+				$Text = StringRegExpReplace($Text, "(?i)(_?)(" & $Field & "\(.*?\))", "", 1)
+			EndIf
+		Else
+			$Text = $Field & "(" & $NewValue & ")_" & $Text
+
+		EndIf
+		
+		Return $Text
+
+	Else ; If no new value is provided, return the current value
+		If $Value <> -1 Then
+			Return $Value
+		Else
+			_Log("   Error: Could not find field: " & $Field)
+			Return SetError(1, 0, "")
+		EndIf
+	EndIf
+
 EndFunc   ;==>_FieldValue
 
 ;===============================================================================
@@ -1184,7 +1209,7 @@ Func _TimeStamp($Option = 2)
 
 	If $Option = 1 Then $aResult[0] = $aResult[0] * 1000 + @MSEC
 	If $Option = 3 Then $aResult[0] = Floor($aResult[0] / 60)
-	
+
 	Return $aResult[0]
 EndFunc   ;==>_TimeStamp
 
@@ -1327,7 +1352,7 @@ Func _OnlyInstance($iFlag)
 				Local $Msg = MsgBox(262144 + 256 + 48 + 4, @ScriptName, "The Program (" & @ScriptName & ") Is Already Running, Continue Anyway?")
 				If $Msg <> $IDYES Then ProcessClose(@AutoItPID)
 			Case 4
-				Local $Msg = MsgBox(262144 + 256 + 48 + 4, @ScriptName, "The Program (" & @ScriptName & ") Is Already Running, Close The Other Proccesses?") 
+				Local $Msg = MsgBox(262144 + 256 + 48 + 4, @ScriptName, "The Program (" & @ScriptName & ") Is Already Running, Close The Other Proccesses?")
 				If $Msg =$IDYES Then _ProcessCloseOthers()
 		EndSwitch
 		Return 1
