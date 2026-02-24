@@ -17,6 +17,31 @@
 #include <WinAPIShPath.au3>
 #include <WinAPISysWin.au3>
 #include <WindowsConstants.au3>
+
+;===============================================================================
+; Function Name:    _GetVersion
+; Description:		Gets the version number of a file
+; Call With:		_FileGetVersion($File, $Segment)
+; Parameter(s): 	$File - [optional] Path to the file (default is the script's path)
+;					$Segment - [optional] Segment of the version to return (1 = Major, 2 = Minor, 3 = Patch, 4 = Build - default is 4)
+; Return Value(s):  On Success - Version segment as a string
+; 					On Failure - "" (Error code in @error)
+; Author(s):        JohnMC - JohnsCS.com
+; Date/Version:		02/24/2026  --  v1.1
+;===============================================================================
+Func _FileGetVersion($File = Default, $Segment = Default)
+	If $File = Default Then $File = @ScriptFullPath
+	If $Segment = Default Then $Segment = 4
+
+	Local $Version = FileGetVersion($File)
+	If @error Then Return SetError(1, 0, "")
+		
+	Local $aVersion = StringSplit($Version,".")
+	If @error Then Return SetError(2, 0, $Version)
+
+	Return $aVersion[$Segment]
+
+EndFunc
 ;===============================================================================
 ; Function Name:    _FileSigned
 ; Description:		Verifies a file's digital signature
