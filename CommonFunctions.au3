@@ -80,13 +80,15 @@ EndFunc
 ;===============================================================================
 Func _FileGetVersion($File = Default, $Segment = Default)
 	If $File = Default Then $File = @ScriptFullPath
-	If $Segment = Default Then $Segment = 4
 
 	Local $Version = FileGetVersion($File)
 	If @error Then Return SetError(1, 0, "")
-		
-	Local $aVersion = StringSplit($Version,".")
+
+	Local $aVersion = StringSplit($Version, ".")
 	If @error Then Return SetError(2, 0, $Version)
+
+	If $Segment = Default Then $Segment = $aVersion[0]
+	If $Segment < 1 Or $Segment > $aVersion[0] Then Return SetError(3, 0, "")
 
 	Return $aVersion[$Segment]
 
@@ -153,26 +155,34 @@ EndFunc
 Func _HideDrive($DriveLetter, $Hide = Default)
 	If $Hide = Default Then $Hide = True
 
-    Local $DriveNumber = Asc(StringUpper($DriveLetter)) - Asc("A")
-	Local $ThisMask = BitShift(1, -$DriveNumber)
+	Local $DriveNumber = Asc(StringUpper($DriveLetter)) - Asc("A")
+	Local $DriveBit = BitShift(1, -$DriveNumber)
 
 	; Get the current value of the NoDrives registry key
 	Local $CurrentMask = RegRead("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer", "NoDrives")
 	If @error Then $CurrentMask = 0
 
+	; Check if the drive is already in the desired state
+	Local $IsHidden = BitAND($CurrentMask, $DriveBit) <> 0
+	If ($Hide And $IsHidden) Or (Not $Hide And Not $IsHidden) Then
+		_Log("Drive " & $DriveLetter & ": is already " & ($Hide ? "hidden" : "visible") & ".")
+		Return
+	EndIf
+
 	; Calculate the new value based on if we should hide or show the drive
+	Local $NewMask
 	If $Hide Then
-		$ThisMask = $CurrentMask + $ThisMask
+		$NewMask = BitOR($CurrentMask, $DriveBit)
 	Else
-		$ThisMask = $CurrentMask - $ThisMask
+		$NewMask = BitAND($CurrentMask, BitNOT($DriveBit))
 	EndIf
 
 	; Write the new value to the registry
-	Local $RegWrite = RegWrite("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer", "NoDrives", "REG_DWORD", $ThisMask)
+	Local $RegWrite = RegWrite("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer", "NoDrives", "REG_DWORD", $NewMask)
 	If @error Then
-		_Log("Error: Could not hide drive " & $DriveLetter & ": in Explorer. Mask: " & $ThisMask & " Error: " & @error & " Result: " & $RegWrite)
+		_Log("Error: Could not hide drive " & $DriveLetter & ": in Explorer. Mask: " & $NewMask & " Error: " & @error & " Result: " & $RegWrite)
 	Else
-		_Log("Success: Hid drive " & $DriveLetter & ": in Explorer.")
+		_Log("Success: " & ($Hide ? "Hid" : "Unhid") & " drive " & $DriveLetter & ": in Explorer.")
 	EndIf
 EndFunc
 ;===============================================================================
@@ -626,21 +636,21 @@ EndFunc   ;==>IsActivated
 ; Date/Version ..: 11/15/2023  --  v1.1
 ; ===============================================================================================================================
 Func _FileModifiedAge($sFile)
-	$hFile = _WinAPI_CreateFile($sFile, 2, 2)
+	Local $hFile = _WinAPI_CreateFile($sFile, 2, 2)
 	If $hFile = 0 Then
 		Return SetError(1, 0, -1)
 	Else
-		$tFileTime = _Date_Time_GetFileTime($hFile)
-		$aFileTime = _Date_Time_FileTimeToArray($tFileTime[2])
-		$sFileTime = _Date_Time_FileTimeToStr($tFileTime[2], 1)
+		Local $tFileTime = _Date_Time_GetFileTime($hFile)
+		Local $aFileTime = _Date_Time_FileTimeToArray($tFileTime[2])
+		Local $sFileTime = _Date_Time_FileTimeToStr($tFileTime[2], 1)
 
 		_WinAPI_CloseHandle($hFile)
 
-		$tSystemTime = _Date_Time_GetSystemTime()
-		$sSystemTime = _Date_Time_SystemTimeToDateTimeStr($tSystemTime, 1)
-		$aSystemTime = _Date_Time_SystemTimeToArray($tSystemTime)
+		Local $tSystemTime = _Date_Time_GetSystemTime()
+		Local $sSystemTime = _Date_Time_SystemTimeToDateTimeStr($tSystemTime, 1)
+		Local $aSystemTime = _Date_Time_SystemTimeToArray($tSystemTime)
 
-		$iFileAge = _DateDiff('s', $sFileTime, $sSystemTime) * 1000 + $aSystemTime[6] - $aFileTime[6]
+		Local $iFileAge = _DateDiff('s', $sFileTime, $sSystemTime) * 1000 + $aSystemTime[6] - $aFileTime[6]
 
 		Return $iFileAge
 	EndIf
@@ -976,26 +986,37 @@ Func _StringStripWS($String)
 EndFunc   ;==>_StringStripWS
 
 ;===============================================================================
-; Function Name:    _mousecheck()
+; Function Name:    _MouseCheck()
 ; Description:		Checks for mouse movement
-; Call With:		_mousecheck($Sleep)
-; Parameter(s): 	$Sleep - Miliseconds between mouse checks, 0=Compare At Next Call
+; Call With:		_MouseCheck($Sleep)
+; Parameter(s): 	$Sleep - Milliseconds between mouse checks, 0=Compare At Next Call
 ; Return Value(s):  On Success - 1 (Mouse Moved)
 ; 					On Failure - 0 (Mouse Didnt Move)
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		01/29/2010  --  v1.0
 ;===============================================================================
-Func _MouseCheck($Sleep = 300)
-	Local $MOUSECHECK_POS1, $MOUSECHECK_POS2
+Func _MouseCheck($Sleep = Default)
+	If $Sleep = Default Then $Sleep = 300
 
-	If $Sleep = 0 Then Global $MOUSECHECK_POS1
-	If IsArray($MOUSECHECK_POS1) = 0 And $Sleep = 0 Then $MOUSECHECK_POS1 = MouseGetPos()
-	Sleep($Sleep)
-	$MOUSECHECK_POS2 = MouseGetPos()
-	If Abs($MOUSECHECK_POS1[0] - $MOUSECHECK_POS2[0]) > 2 Or Abs($MOUSECHECK_POS1[1] - $MOUSECHECK_POS2[1]) > 2 Then
-		If $Sleep = 0 Then $MOUSECHECK_POS1 = $MOUSECHECK_POS2
-		Return 1
+	Static Local $sPrevPos = Null
+
+	If $Sleep = 0 Then
+		; Deferred mode: capture position now, compare on next call
+		Local $aCurrentPos = MouseGetPos()
+		If Not IsArray($sPrevPos) Then
+			$sPrevPos = $aCurrentPos
+			Return 0
+		EndIf
+		Local $bMoved = (Abs($sPrevPos[0] - $aCurrentPos[0]) > 2 Or Abs($sPrevPos[1] - $aCurrentPos[1]) > 2)
+		$sPrevPos = $aCurrentPos
+		Return $bMoved ? 1 : 0
 	EndIf
+
+	; Immediate mode: capture, sleep, compare
+	Local $aPos1 = MouseGetPos()
+	Sleep($Sleep)
+	Local $aPos2 = MouseGetPos()
+	If Abs($aPos1[0] - $aPos2[0]) > 2 Or Abs($aPos1[1] - $aPos2[1]) > 2 Then Return 1
 
 	Return 0
 EndFunc   ;==>_MouseCheck
@@ -1041,7 +1062,7 @@ Func _FieldValue($Text, $Field, $NewValue = -1)
 			$Text = $Field & "(" & $NewValue & ")_" & $Text
 
 		EndIf
-		
+
 		Return $Text
 
 	Else ; If no new value is provided, return the current value
@@ -1200,9 +1221,7 @@ Func _Log($sMessage, $iLevel = Default, $bOverWriteLast = Default, $iCallingLine
 		_GUICtrlEdit_BeginUpdate($_hLogEdit)
 		If $bOverWriteLast Then
 			Local $sFullText = _GUICtrlEdit_GetText($_hLogEdit)
-			;Msgbox(0,"",$sFullText)
 			$sFullText = StringLeft($sFullText, StringInStr($sFullText, @CRLF, 0, -1) - 1)
-			;Msgbox(0,"",$sFullText)
 			_GUICtrlEdit_SetText($_hLogEdit, $sFullText)
 
 		EndIf
@@ -1343,6 +1362,8 @@ Func _ProcessOwner($PID, $Hostname = ".")
 			Return $User
 		EndIf
 	Next
+
+	Return SetError(1, 0, 0)
 EndFunc   ;==>_ProcessOwner
 
 ;===============================================================================
@@ -1426,9 +1447,15 @@ EndFunc   ;==>_OnlyInstance
 ; Author(s):        JohnMC - JohnsCS.com
 ; Date/Version:		01/29/2010  --  v1.1
 ;===============================================================================
-Func _MsgBox($Flag, $Title, $Text, $Timeout = 0)
-	If $Title = "" Then $Title = @ScriptName
-	If $Flag = "" Or IsInt($Flag) = 0 Then $Flag = 0
+Func _MsgBox($Flag = Default, $Title = Default, $Text = Default, $Timeout = Default)
+	If $Flag = Default Or IsInt($Flag) = 0 Then $Flag = 0
+	If $Title = Default Then $Title = @ScriptName
+	If $Text = Default Then $Text = ""
+	If $Timeout = Default Then $Timeout = 0
+
+	$Title = StringReplace($Title, "'", "")
+	$Text = StringReplace($Text, "'", "")
+
 	Return Run('"' & @AutoItExe & '"' & ' /AutoIt3ExecuteLine "msgbox(' & $Flag & ',''' & $Title & ''',''' & $Text & ''',''' & $Timeout & ''')"')
 EndFunc   ;==>_MsgBox
 
