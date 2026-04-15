@@ -13,7 +13,7 @@ $tExit = TrayCreateItem("Exit")
 TrayItemSetOnEvent(-1, "_Exit")
 OnAutoItExitRegister ("_Exit")
 
-If StringInStr(@ScriptName, "[splash]")
+;~ If StringInStr(@ScriptName, "[splash]")
 
 
 
